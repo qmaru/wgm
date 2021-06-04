@@ -216,7 +216,7 @@ func ServerCfg(server int, username string, extraRule bool) (string, string) {
 			LEFT JOIN rules on rules.id = rulemap.rule_id
 			WHERE users.status = 1 and rulemap.status = 1 and rules.status = 1 and users.username=? and users.is_extra=1
 		`
-			ruleRows, _ := models.DBQuery(ruleQuery, username)
+			ruleRows, _ := models.DBQuery(ruleQuery, pusername)
 			defer ruleRows.Close()
 
 			var rAllowedIP string
