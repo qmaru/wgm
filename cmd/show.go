@@ -38,7 +38,7 @@ var (
 		},
 	}
 	cfgType      int
-	cfgServer    string
+	cfgServerID  int
 	cfgUsername  string
 	cfgMainnode  string
 	cfgExtraRule bool
@@ -48,7 +48,7 @@ var (
 		Short: "Show Config Details",
 		Run: func(cmd *cobra.Command, args []string) {
 			if TypeCheck(cfgType) {
-				cfgInfo := services.ShowUserCfg(cfgType, cfgServer, cfgUsername, cfgMainnode, cfgExtraRule, cfgName)
+				cfgInfo := services.ShowUserCfg(cfgType, cfgServerID, cfgUsername, cfgMainnode, cfgExtraRule, cfgName)
 				fmt.Println(cfgInfo)
 			} else {
 				fmt.Println("Type Error")
@@ -59,7 +59,7 @@ var (
 
 func init() {
 	cfgCmd.Flags().IntVarP(&cfgType, "type", "t", 0, "Config Type: 1 or 2")
-	cfgCmd.Flags().StringVarP(&cfgServer, "server", "s", "", "Server Name")
+	cfgCmd.Flags().IntVarP(&cfgServerID, "server", "s", 0, "Server ID")
 	cfgCmd.Flags().StringVarP(&cfgUsername, "user", "u", "", "User Name")
 	cfgCmd.Flags().StringVarP(&cfgMainnode, "node", "m", "", "Type 1 User Name (client only)")
 	cfgCmd.Flags().BoolVarP(&cfgExtraRule, "extra", "e", false, "Add Extra Rule")
