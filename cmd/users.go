@@ -75,7 +75,7 @@ var (
 		Use:   "delete",
 		Short: "Delete User",
 		Run: func(cmd *cobra.Command, args []string) {
-			code := services.DeleteUser(1, "server")
+			code := services.DeleteUser(userServerID, userUsername)
 			fmt.Println(code)
 		},
 	}
