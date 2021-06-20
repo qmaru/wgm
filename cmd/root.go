@@ -13,7 +13,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:     "wgm",
 		Short:   "wgm is a simple Wireguard VPN management tool",
-		Version: "1.2-20210606-1",
+		Version: "1.2-20210620-1",
 		Run: func(cmd *cobra.Command, args []string) {
 			if models.TableCheck() {
 				cmd.Help()
