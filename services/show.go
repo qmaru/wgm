@@ -30,7 +30,7 @@ func Output(otype string, data []map[string]string) {
 	tb.PrintTable()
 }
 
-func ShowUserList(serverID int) {
+func ShowUserList(serverID int, plain bool) {
 	var extraWhere string
 	if serverID != 0 {
 		extraWhere = fmt.Sprintf(" and servers.id=%d", serverID)
@@ -63,21 +63,30 @@ func ShowUserList(serverID int) {
 	var uIP string
 	var uPrikey string
 	var uPubKey string
-	userData := make([]map[string]string, 0)
 
-	for rows.Next() {
-		rows.Scan(&sID, &sTitle, &uUsername, &uID, &uIP, &uPrikey, &uPubKey)
-		uData := make(map[string]string)
-		uData["ID"] = uID
-		uData["Username"] = uUsername
-		uData["ServerID"] = sID
-		uData["Server"] = sTitle
-		uData["IP"] = uIP
-		uData["Private"] = uPrikey
-		uData["Public"] = uPubKey
-		userData = append(userData, uData)
+	if plain {
+		var uUsername string
+		for rows.Next() {
+			rows.Scan(&sID, &sTitle, &uUsername, &uID, &uIP, &uPrikey, &uPubKey)
+			fmt.Println(uUsername)
+		}
+	} else {
+		userData := make([]map[string]string, 0)
+
+		for rows.Next() {
+			rows.Scan(&sID, &sTitle, &uUsername, &uID, &uIP, &uPrikey, &uPubKey)
+			uData := make(map[string]string)
+			uData["ID"] = uID
+			uData["Username"] = uUsername
+			uData["ServerID"] = sID
+			uData["Server"] = sTitle
+			uData["IP"] = uIP
+			uData["Private"] = uPrikey
+			uData["Public"] = uPubKey
+			userData = append(userData, uData)
+		}
+		Output("userList", userData)
 	}
-	Output("userList", userData)
 }
 
 func ShowServerList() {

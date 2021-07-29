@@ -17,11 +17,12 @@ var (
 		},
 	}
 	showUserServerID int
+	showUserPlain    bool
 	usersCmd         = &cobra.Command{
 		Use:   "users",
 		Short: "Show User List",
 		Run: func(cmd *cobra.Command, args []string) {
-			services.ShowUserList(showUserServerID)
+			services.ShowUserList(showUserServerID, showUserPlain)
 		},
 	}
 	serversCmd = &cobra.Command{
@@ -70,6 +71,7 @@ func init() {
 	cfgCmd.MarkFlagRequired("user")
 
 	usersCmd.Flags().IntVarP(&showUserServerID, "server", "s", 0, "Server ID")
+	usersCmd.Flags().BoolVarP(&showUserPlain, "plain", "p", false, "Plain Text")
 
 	showCmd.AddCommand(usersCmd)
 	showCmd.AddCommand(serversCmd)

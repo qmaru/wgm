@@ -108,7 +108,7 @@ func TestRulemapDel(t *testing.T) {
 }
 
 func TestShowUserList(t *testing.T) {
-	services.ShowUserList(0)
+	services.ShowUserList(0, false)
 }
 
 func TestShowServerList(t *testing.T) {
