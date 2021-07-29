@@ -16,11 +16,12 @@ var (
 			cmd.Help()
 		},
 	}
-	usersCmd = &cobra.Command{
+	showUserServerID int
+	usersCmd         = &cobra.Command{
 		Use:   "users",
 		Short: "Show User List",
 		Run: func(cmd *cobra.Command, args []string) {
-			services.ShowUserList()
+			services.ShowUserList(showUserServerID)
 		},
 	}
 	serversCmd = &cobra.Command{
@@ -67,6 +68,8 @@ func init() {
 	cfgCmd.MarkFlagRequired("type")
 	cfgCmd.MarkFlagRequired("server")
 	cfgCmd.MarkFlagRequired("user")
+
+	usersCmd.Flags().IntVarP(&showUserServerID, "server", "s", 0, "Server ID")
 
 	showCmd.AddCommand(usersCmd)
 	showCmd.AddCommand(serversCmd)

@@ -30,7 +30,11 @@ func Output(otype string, data []map[string]string) {
 	tb.PrintTable()
 }
 
-func ShowUserList() {
+func ShowUserList(serverID int) {
+	var extraWhere string
+	if serverID != 0 {
+		extraWhere = fmt.Sprintf(" and servers.id=%d", serverID)
+	}
 	userQuery := `
 		SELECT
 			servers.id,
@@ -44,7 +48,7 @@ func ShowUserList() {
 			users
 		LEFT JOIN servers on users.server_id = servers.id
 		WHERE servers.status = 1 and users.status = 1
-	`
+	` + extraWhere
 
 	rows, err := models.DBQuery(userQuery)
 	if err != nil {
