@@ -7,47 +7,56 @@ import (
 	"wgm/models"
 )
 
-func UserCheck(serverID int, username string) int {
-	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and username=? and server_id=?", models.UsersTable)
-	row := models.DBQueryOne(sql, username, serverID)
+func UserCheck(serverID, userID int) int {
+	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and id=? and server_id=?", models.UsersTable)
+	row := models.DBQueryOne(sql, userID, serverID)
 	var uid int
 	row.Scan(&uid)
 	return uid
 }
 
+func UserIPCheck(serverID int, lanIP string) bool {
+	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and server_id=? and ip=? ", models.UsersTable)
+	row := models.DBQueryOne(sql, serverID, lanIP)
+	var uid int
+	row.Scan(&uid)
+	return uid != 0
+}
+
 // CreateUser 创建用户
-func CreateUser(info map[string]interface{}) statusCode {
+func CreateUser(user models.Users) statusCode {
 	if !ServerExist() {
-		return serverNotFound
+		return ServerNotFound
 	}
 
-	userServerIDRaw, ok1 := info["server_id"]
-	userUsernameRaw, ok2 := info["username"]
+	userServerID := user.ServerID
+	userUsername := user.Username
 
-	if !ok1 {
-		return serverNotFound
-	}
+	userID := GetUserID(userUsername)
 
-	if !ok2 {
-		return userNotFound
-	}
-
-	userServerID := userServerIDRaw.(int)
-	userUsername := userUsernameRaw.(string)
-
-	if UserCheck(userServerID, userUsername) != 0 {
-		return userHasExist
+	if UserCheck(userServerID, userID) != 0 {
+		return UserHasExist
 	}
 
 	serverData := QueryServer(userServerID)
-	if len(serverData) != 0 {
-		serverLanIP := serverData["lan_ip"].(string)
-		serverLanNetmask := serverData["lan_netmask"].(string)
+	if serverData.CommonModel.ID != 0 {
+		serverLanIP := serverData.LanIP
+		serverLanNetmask := serverData.LanNetmask
 		serverLan := fmt.Sprintf("%s/%s", serverLanIP, serverLanNetmask)
-		userIP := info["ip"].(string)
+		userIP := user.IP
 
 		if !IPcheck(userIP, serverLan) {
-			return userIPError
+			return UserIPError
+		}
+
+		if userIP == serverLanIP {
+			return UserIPError
+		}
+
+		userIPLan := fmt.Sprintf("%s/%s", userIP, serverLanNetmask)
+
+		if UserIPCheck(userServerID, userIPLan) {
+			return UserIPDuplicate
 		}
 
 		prikey, _ := GeneratePrivateKey()
@@ -57,9 +66,9 @@ func CreateUser(info map[string]interface{}) statusCode {
 		updatedat := time.Now().Unix()
 		userPrikey := prikey.String()
 		userPubkey := pubkey.String()
-		userIPLan := fmt.Sprintf("%s/%s", userIP, "24")
+
 		userDefaultRule := fmt.Sprintf("%s/%s", userIP, "32")
-		userIsExtra := info["is_extra"].(int)
+		userIsExtra := user.IsExtra
 
 		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_extra) VALUES (?,?,?,?,?,?,?,?,?)", models.UsersTable)
 		models.DBExec(
@@ -74,61 +83,56 @@ func CreateUser(info map[string]interface{}) statusCode {
 			userDefaultRule,
 			userIsExtra,
 		)
-		return userCreateSucceed
+		return UserCreateSucceed
 	}
-	return serverNotFound
+	return ServerNotFound
 }
 
 // UpdateUser 修改用户
-func UpdateUser(info map[string]interface{}) statusCode {
+func UpdateUser(serverID, userID int, user models.Users) statusCode {
 	if !ServerExist() {
-		return serverNotFound
+		return ServerNotFound
 	}
 
-	userServerIDRaw, ok1 := info["server_id"]
-	userUsernameRaw, ok2 := info["username"]
+	if uid := UserCheck(serverID, userID); uid != 0 {
+		serverData := QueryServer(serverID)
+		if serverData.CommonModel.ID != 0 {
+			data := make(map[string]interface{})
+			userIP := user.IP
 
-	if !ok1 {
-		return serverNotFound
-	}
-
-	if !ok2 {
-		return userNotFound
-	}
-
-	userServerID := userServerIDRaw.(int)
-	userUsername := userUsernameRaw.(string)
-
-	if uid := UserCheck(userServerID, userUsername); uid != 0 {
-		serverData := QueryServer(userServerID)
-		if len(serverData) != 0 {
-			var userIP string
 			var userIPLan string
 			var userDefaultRule string
 
-			if userIPRaw, ok := info["ip"]; ok {
-				userIP = userIPRaw.(string)
-				serverLanIP := serverData["lan_ip"].(string)
-				serverLanNetmask := serverData["lan_netmask"].(string)
+			if userIP != "" {
+				serverLanIP := serverData.LanIP
+				serverLanNetmask := serverData.LanNetmask
 				serverLan := fmt.Sprintf("%s/%s", serverLanIP, serverLanNetmask)
 				if !IPcheck(userIP, serverLan) {
-					return userIPError
+					return UserIPError
 				}
-				userIPLan = fmt.Sprintf("%s/%s", userIP, "24")
+				userIPLan = fmt.Sprintf("%s/%s", userIP, serverLanNetmask)
 				userDefaultRule = fmt.Sprintf("%s/%s", userIP, "32")
 			}
 
-			updatedat := time.Now().Unix()
-
 			if userIPLan != "" {
-				info["ip"] = userIPLan
-				info["default_rule"] = userDefaultRule
+				data["ip"] = userIPLan
+				data["default_rule"] = userDefaultRule
 			}
 
-			delete(info, "server_id")
-			delete(info, "username")
+			if user.PersistentKeepalive != 0 {
+				data["keepalive"] = user.PersistentKeepalive
+			} else {
+				data["keepalive"] = 25
+			}
 
-			updateSets := GenUpdate(info)
+			if user.Username != "" {
+				data["username"] = user.Username
+			}
+
+			data["is_extra"] = user.IsExtra
+
+			updatedat := time.Now().Unix()
+			updateSets := GenUpdate(data)
 			if updateSets != "" {
 				sqlUpdate := fmt.Sprintf("UPDATE %s SET updated_at=?,%s WHERE id=? and status=1", models.UsersTable, updateSets)
 				models.DBExec(
@@ -137,15 +141,15 @@ func UpdateUser(info map[string]interface{}) statusCode {
 					uid,
 				)
 			}
-			return userUpdateSucceed
+			return UserUpdateSucceed
 		}
 	}
-	return userNotFound
+	return UserNotFound
 }
 
 // UpdateUserKey 更换用户密钥
-func UpdateUserKey(serverID int, username string) statusCode {
-	if uid := UserCheck(serverID, username); uid != 0 {
+func UpdateUserKey(serverID, userID int) statusCode {
+	if uid := UserCheck(serverID, userID); uid != 0 {
 		updateat := time.Now().Unix()
 		prikey, _ := GeneratePrivateKey()
 		pubkey := prikey.PublicKey()
@@ -155,17 +159,60 @@ func UpdateUserKey(serverID int, username string) statusCode {
 
 		sqlUpdate := fmt.Sprintf("UPDATE %s SET updated_at=?,prikey=?,pubkey=? WHERE id=? and status=1", models.UsersTable)
 		models.DBExec(sqlUpdate, updateat, userPrikey, userPubkey, uid)
-		return userUpdateSucceed
+		return UserUpdateSucceed
 	}
-	return userNotFound
+	return UserNotFound
+}
+
+func QueryUser(serverID, userID int) (data models.Users) {
+	if uid := UserCheck(serverID, userID); uid != 0 {
+		var userName string
+		var userPriKey string
+		var userPubkey string
+		var userIP string
+		var userDefaultRule string
+		var userIsExtra int
+		var userPersistentKeepalive int
+
+		userSelect := fmt.Sprintf("SELECT id,server_id,username,prikey,pubkey,ip,default_rule,is_extra,keepalive FROM %s WHERE status=1 and server_id=? and id=?", models.UsersTable)
+		row := models.DBQueryOne(userSelect, serverID, userID)
+		row.Scan(
+			&userID,
+			&serverID,
+			&userName,
+			&userPriKey,
+			&userPubkey,
+			&userIP,
+			&userDefaultRule,
+			&userIsExtra,
+			&userPersistentKeepalive,
+		)
+		if userID != 0 {
+			data = models.Users{
+				CommonModel: models.CommonModel{
+					ID: userID,
+				},
+				ServerID:            serverID,
+				Username:            userName,
+				PriKey:              userPriKey,
+				Pubkey:              userPubkey,
+				IP:                  userIP,
+				DefaultRule:         userDefaultRule,
+				IsExtra:             userIsExtra,
+				PersistentKeepalive: userPersistentKeepalive,
+			}
+			return
+		}
+	}
+	return
 }
 
 // DeleteUser 删除用户
-func DeleteUser(serverID int, username string) statusCode {
-	if uid := UserCheck(serverID, username); uid != 0 {
+func DeleteUser(serverID, userID int) statusCode {
+	if uid := UserCheck(serverID, userID); uid != 0 {
 		sqlDelete := fmt.Sprintf("UPDATE %s SET status=0 WHERE id=? and status=1", models.UsersTable)
 		models.DBExec(sqlDelete, uid)
-		return userDeleteSucceed
+		return UserDeleteSucceed
 	}
-	return userNotFound
+	return UserNotFound
 }

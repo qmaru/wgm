@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"wgm/models"
 	"wgm/services"
 
 	"github.com/spf13/cobra"
@@ -16,12 +17,12 @@ var (
 			cmd.Help()
 		},
 	}
-	userServerID  int
-	userUsername  string
-	userIP        string
-	userExtra     bool
-	userKeepalive string
-	userAddCmd    = &cobra.Command{
+	userServerTitle string
+	userUsername    string
+	userIP          string
+	userExtra       bool
+	userKeepalive   int
+	userAddCmd      = &cobra.Command{
 		Use:   "create",
 		Short: "Create User",
 		Run: func(cmd *cobra.Command, args []string) {
@@ -29,13 +30,16 @@ var (
 			if userExtra {
 				isExtra = 1
 			}
-			info := map[string]interface{}{
-				"server_id": userServerID,
-				"username":  userUsername,
-				"ip":        userIP,
-				"is_extra":  isExtra,
-				"keepalive": userKeepalive,
+
+			userServerID := services.GetServerID(userServerTitle)
+			info := models.Users{
+				ServerID:            userServerID,
+				Username:            userUsername,
+				IP:                  userIP,
+				IsExtra:             isExtra,
+				PersistentKeepalive: userKeepalive,
 			}
+
 			code := services.CreateUser(info)
 			fmt.Println(code)
 		},
@@ -44,22 +48,23 @@ var (
 		Use:   "update",
 		Short: "Update User",
 		Run: func(cmd *cobra.Command, args []string) {
-			info := map[string]interface{}{
-				"server_id": userServerID,
-				"username":  userUsername,
-			}
-			if userIP != "" {
-				info["ip"] = userIP
-			}
-			if userKeepalive != "" {
-				info["keepalive"] = userKeepalive
-			}
+			userID := services.GetUserID(userUsername)
+			userServerID := services.GetServerID(userServerTitle)
+
 			isExtra := 0
 			if userExtra {
 				isExtra = 1
 			}
-			info["is_extra"] = isExtra
-			code := services.UpdateUser(info)
+
+			info := models.Users{
+				ServerID:            userServerID,
+				Username:            userUsername,
+				IP:                  userIP,
+				IsExtra:             isExtra,
+				PersistentKeepalive: userKeepalive,
+			}
+
+			code := services.UpdateUser(userServerID, userID, info)
 			fmt.Println(code)
 		},
 	}
@@ -67,7 +72,9 @@ var (
 		Use:   "key",
 		Short: "Update User key",
 		Run: func(cmd *cobra.Command, args []string) {
-			code := services.UpdateUserKey(userServerID, userUsername)
+			userID := services.GetUserID(userUsername)
+			userServerID := services.GetServerID(userServerTitle)
+			code := services.UpdateUserKey(userServerID, userID)
 			fmt.Println(code)
 		},
 	}
@@ -75,39 +82,41 @@ var (
 		Use:   "delete",
 		Short: "Delete User",
 		Run: func(cmd *cobra.Command, args []string) {
-			code := services.DeleteUser(userServerID, userUsername)
+			userID := services.GetUserID(userUsername)
+			userServerID := services.GetServerID(userServerTitle)
+			code := services.DeleteUser(userServerID, userID)
 			fmt.Println(code)
 		},
 	}
 )
 
 func init() {
-	userAddCmd.Flags().IntVarP(&userServerID, "server_id", "s", 0, "Server ID")
+	userAddCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userAddCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
 	userAddCmd.Flags().StringVarP(&userIP, "ip", "i", "", "User IP")
 	userAddCmd.Flags().BoolVarP(&userExtra, "extra", "e", false, "Open Extra Rule")
-	userAddCmd.Flags().StringVarP(&userKeepalive, "keepalive", "k", "25", "User Keepalive")
+	userAddCmd.Flags().IntVarP(&userKeepalive, "keepalive", "k", 25, "User Keepalive")
 
-	userAddCmd.MarkFlagRequired("server_id")
+	userAddCmd.MarkFlagRequired("server")
 	userAddCmd.MarkFlagRequired("user")
 	userAddCmd.MarkFlagRequired("ip")
 
-	userUpdateCmd.Flags().IntVarP(&userServerID, "server_id", "s", 0, "Server ID")
+	userUpdateCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userUpdateCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
 	userUpdateCmd.Flags().StringVarP(&userIP, "ip", "i", "", "User IP")
 	userUpdateCmd.Flags().BoolVarP(&userExtra, "extra", "e", false, "Open Extra Rule")
-	userUpdateCmd.Flags().StringVarP(&userKeepalive, "keepalive", "k", "25", "User Keepalive")
-	userUpdateCmd.MarkFlagRequired("server_id")
+	userUpdateCmd.Flags().IntVarP(&userKeepalive, "keepalive", "k", 25, "User Keepalive")
+	userUpdateCmd.MarkFlagRequired("server")
 	userUpdateCmd.MarkFlagRequired("user")
 
-	userKeyUpdateCmd.Flags().IntVarP(&userServerID, "server_id", "s", 0, "Server ID")
+	userKeyUpdateCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userKeyUpdateCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
-	userKeyUpdateCmd.MarkFlagRequired("server_id")
+	userKeyUpdateCmd.MarkFlagRequired("server")
 	userKeyUpdateCmd.MarkFlagRequired("user")
 
-	userDelCmd.Flags().IntVarP(&userServerID, "server_id", "s", 0, "Server ID")
+	userDelCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userDelCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
-	userDelCmd.MarkFlagRequired("server_id")
+	userDelCmd.MarkFlagRequired("server")
 	userDelCmd.MarkFlagRequired("user")
 
 	userCmd.AddCommand(userAddCmd)

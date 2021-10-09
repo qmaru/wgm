@@ -28,7 +28,7 @@ var (
 		Use:   "delete",
 		Short: "Delete Rule For User",
 		Run: func(cmd *cobra.Command, args []string) {
-			code := services.DeleteUserRule(rmUserID, rmRuleID)
+			code := services.DeleteUserRule(rmRuleID, rmUserID)
 			fmt.Println(code)
 		},
 	}

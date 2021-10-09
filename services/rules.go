@@ -27,16 +27,16 @@ func AllowedCheck(allowedip string) (bool, string) {
 func CreateRule(allowedip string) statusCode {
 	if ok, subnet := AllowedCheck(allowedip); ok {
 		if rid := RuleCheck(subnet); rid != 0 {
-			return ruleHasExist
+			return RuleHasExist
 		}
 		createdat := time.Now().Unix()
 		updatedat := time.Now().Unix()
 
 		ruleInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,allowedip) VALUES (?,?,?)", models.RulesTable)
 		models.DBExec(ruleInsert, createdat, updatedat, subnet)
-		return ruleCreateSucceed
+		return RuleCreateSucceed
 	}
-	return ruleIPError
+	return RuleIPError
 }
 
 func UpdateRule(ruleID int, newAllowedip string) statusCode {
@@ -44,23 +44,23 @@ func UpdateRule(ruleID int, newAllowedip string) statusCode {
 	var newSubnet string
 
 	if ok, newSubnet = AllowedCheck(newAllowedip); !ok {
-		return ruleIPError
+		return RuleIPError
 	}
 
 	if IDCheck(ruleID, models.RulesTable) {
 		updatedat := time.Now().Unix()
 		ruleUpdate := fmt.Sprintf("UPDATE %s SET updated_at=?,allowedip=? WHERE id=? and status=1", models.RulesTable)
 		models.DBExec(ruleUpdate, updatedat, newSubnet, ruleID)
-		return ruleUpdateSucceed
+		return RuleUpdateSucceed
 	}
-	return ruleNotFound
+	return RuleNotFound
 }
 
 func DeleteRule(ruleID int) statusCode {
 	if IDCheck(ruleID, models.RulesTable) {
 		ruleDelete := fmt.Sprintf("UPDATE %s SET status=0 WHERE id=? and status=1", models.RulesTable)
 		models.DBExec(ruleDelete, ruleID)
-		return ruleDeleteSucceed
+		return RuleDeleteSucceed
 	}
-	return ruleNotFound
+	return RuleNotFound
 }

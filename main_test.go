@@ -13,14 +13,14 @@ func TestDBInit(t *testing.T) {
 }
 
 func TestServerAdd(t *testing.T) {
-	info := map[string]interface{}{
-		"title":       "wg1",
-		"address":     "wg.example.com",
-		"port":        443,
-		"lan_ip":      "10.0.0.1",
-		"lan_netmask": "24",
-		"mtu":         "",
-		"dns":         "",
+	info := models.Servers{
+		Title:      "wg1",
+		Address:    "wg.example.com",
+		Port:       443,
+		LanIP:      "10.0.0.1",
+		LanNetmask: "24",
+		MTU:        "",
+		DNS:        "",
 	}
 
 	code := services.CreateServer(info)
@@ -28,49 +28,50 @@ func TestServerAdd(t *testing.T) {
 }
 
 func TestServerUpdate(t *testing.T) {
-	info := map[string]interface{}{
-		"title":       "wg2",
-		"address":     "wg2.example.com",
-		"lan_ip":      "10.0.0.10",
-		"lan_netmask": "24",
-		"mtu":         "",
+	info := models.Servers{
+		Title:      "wg2",
+		Address:    "wg2.example.com",
+		LanIP:      "10.0.0.1",
+		LanNetmask: "24",
 	}
-	code := services.UpdateServer(info)
+
+	code := services.UpdateServer(1, info)
 	fmt.Println(code)
 }
 
 func TestServerDel(t *testing.T) {
 	title := "wg3"
-	code := services.DeleteServer(title)
+	serverID := services.GetServerID(title)
+	code := services.DeleteServer(serverID)
 	fmt.Println(code)
 }
 
 func TestUserAdd(t *testing.T) {
-	info := map[string]interface{}{
-		"server_id": 1,
-		"username":  "server",
-		"ip":        "10.0.0.10",
+	info := models.Users{
+		ServerID: 1,
+		Username: "server",
+		IP:       "10.0.0.10",
 	}
 	code := services.CreateUser(info)
 	fmt.Println(code)
 }
 func TestUserUpdate(t *testing.T) {
-	info := map[string]interface{}{
-		"server_id": 1,
-		"username":  "server2",
-		"keepalive": 10,
+	info := models.Users{
+		ServerID:            1,
+		Username:            "server2",
+		PersistentKeepalive: 10,
 	}
-	code := services.UpdateUser(info)
+	code := services.UpdateUser(1, 1, info)
 	fmt.Println(code)
 }
 
 func TestUserKeyUpdate(t *testing.T) {
-	code := services.UpdateUserKey(1, "server2")
+	code := services.UpdateUserKey(1, 1)
 	fmt.Println(code)
 }
 
 func TestUserDel(t *testing.T) {
-	code := services.DeleteUser(1, "server2")
+	code := services.DeleteUser(1, 1)
 	fmt.Println(code)
 }
 

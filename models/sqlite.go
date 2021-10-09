@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
+
+	"wgm/config"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -16,8 +17,7 @@ import (
 var dbPath string
 
 func init() {
-	root, _ := os.Getwd()
-	dbPath = filepath.Join(root, "wgm.db")
+	dbPath = config.SetDBPath("wgm.db")
 }
 
 func TableCheck() bool {

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"wgm/models"
 	"wgm/services"
 
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ var (
 	serverCmd = &cobra.Command{
 		Use:   "server",
 		Short: "Manage Server",
-		Run:   func(cmd *cobra.Command, args []string) {
+		Run: func(cmd *cobra.Command, args []string) {
 			cmd.Help()
 		},
 	}
@@ -27,53 +28,44 @@ var (
 		Use:   "create",
 		Short: "Create Server",
 		Run: func(cmd *cobra.Command, args []string) {
-			info := map[string]interface{}{
-				"title":       serverTitle,
-				"address":     serverAddress,
-				"port":        serverPort,
-				"lan_ip":      serverLanIP,
-				"lan_netmask": serverLanNetmask,
-				"mtu":         serverMTU,
-				"dns":         serverDNS,
+			info := models.Servers{
+				Title:      serverTitle,
+				Address:    serverAddress,
+				Port:       serverPort,
+				LanIP:      serverLanIP,
+				LanNetmask: serverLanNetmask,
+				MTU:        serverMTU,
+				DNS:        serverDNS,
 			}
 			code := services.CreateServer(info)
-			fmt.Println(code)
+			fmt.Println(code.String())
 		},
 	}
 	serverUpdateCmd = &cobra.Command{
 		Use:   "update",
 		Short: "Update Server",
 		Run: func(cmd *cobra.Command, args []string) {
-			info := make(map[string]interface{})
-			info["title"] = serverTitle
-			if serverAddress != "" {
-				info["address"] = serverAddress
+			info := models.Servers{
+				Title:      serverTitle,
+				Address:    serverAddress,
+				Port:       serverPort,
+				LanIP:      serverLanIP,
+				LanNetmask: serverLanNetmask,
+				MTU:        serverMTU,
+				DNS:        serverDNS,
 			}
-			if serverPort != 0 {
-				info["port"] = serverPort
-			}
-			if serverLanIP != "" {
-				info["lan_ip"] = serverLanIP
-			}
-			if serverLanNetmask != "" {
-				info["lan_netmask"] = serverLanNetmask
-			}
-			if serverMTU != "" {
-				info["mtu"] = serverMTU
-			}
-			if serverDNS != "" {
-				info["dns"] = serverDNS
-			}
-			code := services.UpdateServer(info)
-			fmt.Println(code)
+			serverID := services.GetServerID(serverTitle)
+			code := services.UpdateServer(serverID, info)
+			fmt.Println(code.String())
 		},
 	}
 	serverDelCmd = &cobra.Command{
 		Use:   "delete",
 		Short: "Delete Server",
 		Run: func(cmd *cobra.Command, args []string) {
-			code := services.DeleteServer(serverTitle)
-			fmt.Println(code)
+			serverID := services.GetServerID(serverTitle)
+			code := services.DeleteServer(serverID)
+			fmt.Println(code.String())
 		},
 	}
 )

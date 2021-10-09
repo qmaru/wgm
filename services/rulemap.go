@@ -15,7 +15,7 @@ func IDCheck(id int, table string) bool {
 	return cid != 0
 }
 
-func RuleMapCheck(userID, ruleID int) int {
+func RuleMapCheck(ruleID, userID int) int {
 	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and user_id=? and rule_id=?", models.RulemapTable)
 	row := models.DBQueryOne(sql, userID, ruleID)
 	var mid int
@@ -23,20 +23,20 @@ func RuleMapCheck(userID, ruleID int) int {
 	return mid
 }
 
-func CreateUserRule(userID, ruleID int) statusCode {
+func CreateUserRule(ruleID, userID int) statusCode {
 	uCheck := IDCheck(userID, models.UsersTable)
 	rCheck := IDCheck(ruleID, models.RulesTable)
 
 	if !uCheck {
-		return userNotFound
+		return UserNotFound
 	}
 
 	if !rCheck {
-		return ruleNotFound
+		return RuleNotFound
 	}
 
 	if rmID := RuleMapCheck(userID, ruleID); rmID != 0 {
-		return ruleMapHasExist
+		return RuleMapHasExist
 	}
 
 	createdat := time.Now().Unix()
@@ -44,14 +44,14 @@ func CreateUserRule(userID, ruleID int) statusCode {
 
 	sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,user_id,rule_id) VALUES (?,?,?,?)", models.RulemapTable)
 	models.DBExec(sqlInsert, createdat, updatedat, userID, ruleID)
-	return ruleMapCreateSucceed
+	return RuleMapCreateSucceed
 }
 
-func DeleteUserRule(userID, ruleID int) statusCode {
-	if rmID := RuleMapCheck(userID, ruleID); rmID != 0 {
+func DeleteUserRule(ruleID, userID int) statusCode {
+	if rmID := RuleMapCheck(ruleID, userID); rmID != 0 {
 		sqlUpdate := fmt.Sprintf("UPDATE %s SET status=0 WHERE status=1 and id=?", models.RulemapTable)
 		models.DBExec(sqlUpdate, rmID)
-		return ruleMapDeleteSucceed
+		return RuleMapDeleteSucceed
 	}
-	return ruleMapNotFound
+	return RuleMapNotFound
 }

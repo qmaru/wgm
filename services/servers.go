@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	"wgm/models"
@@ -16,40 +15,24 @@ func ServerExist() bool {
 	return sid != 0
 }
 
-func ServerCheck(title string) int {
-	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and title=?", models.ServersTable)
-	row := models.DBQueryOne(sql, title)
-	var sid int
-	row.Scan(&sid)
-	return sid
-}
-
-// CreateServer 创建服务器
-func CreateServer(info map[string]interface{}) statusCode {
-	// 收集数据
-	serverTitleRaw, ok := info["title"]
-	if !ok {
-		return serverTitleRequired
+// CreateServer 创建服务端
+func CreateServer(server models.Servers) statusCode {
+	// 必须有服务端标识
+	serverTitle := server.Title
+	if server.Title == "" {
+		return ServerTitleRequired
 	}
 
-	serverTitle := serverTitleRaw.(string)
-	serverAddress := info["address"].(string)
-	serverPort := info["port"].(int)
-	serverLanIP := info["lan_ip"].(string)
-	serverLanNetmask := info["lan_netmask"].(string)
+	serverAddress := server.Address
+	serverPort := server.Port
+	serverLanIP := server.LanIP
+	serverLanNetmask := server.LanNetmask
+	serverMTU := server.MTU
+	serverDNS := server.DNS
 
-	var serverMTU int
-	var serverDNS string
-	if _, ok := info["mtu"]; ok {
-		serverMTU, _ = strconv.Atoi(info["mtu"].(string))
-	}
-
-	if _, ok := info["dns"]; ok {
-		serverDNS = info["dns"].(string)
-	}
 	// 检查数据
-	if serverID := ServerCheck(serverTitle); serverID != 0 {
-		return serverHasExist
+	if serverID := GetServerID(serverTitle); serverID != 0 {
+		return ServerHasExist
 	}
 
 	serverLAN := fmt.Sprintf("%s/%s", serverLanIP, serverLanNetmask)
@@ -70,55 +53,59 @@ func CreateServer(info map[string]interface{}) statusCode {
 			serverMTU,
 			serverDNS,
 		)
-		return serverCreateSucceed
+		return ServerCreateSucceed
 	}
-	return serverIPError
+	return ServerIPError
 }
 
 // UpdateServer 更新服务器
-func UpdateServer(info map[string]interface{}) statusCode {
-	// 生成更新字段
-	serverTitleRaw, ok := info["title"]
-	if !ok {
-		return serverTitleRequired
-	}
+func UpdateServer(id int, server models.Servers) statusCode {
+	if serverID := GetServerID(id); serverID != 0 {
+		data := make(map[string]interface{})
+		serverLanIP := server.LanIP
+		serverLanNetmask := server.LanNetmask
 
-	serverTitle := serverTitleRaw.(string)
-	// 检查数据
-	if serverID := ServerCheck(serverTitle); serverID != 0 {
-		var serverLanIP string
-		var serverLanNetmask string
-		var serverLanCheck bool
-		_, ok1 := info["lan_ip"]
-		_, ok2 := info["lan_netmask"]
-
-		if ok1 && ok2 {
-			serverLanIP = info["lan_ip"].(string)
-			serverLanNetmask = info["lan_netmask"].(string)
+		if serverLanIP != "" && serverLanNetmask != "" {
 			serverLan := fmt.Sprintf("%s/%s", serverLanIP, serverLanNetmask)
-			serverLanCheck, _, _ = LanValidator(serverLan)
+			serverLanCheck, _, _ := LanValidator(serverLan)
 			if !serverLanCheck {
-				return serverIPError
+				return ServerIPError
+			} else {
+				data["lan_ip"] = serverLanIP
+				data["lan_netmask"] = serverLanNetmask
 			}
 		}
 
-		delete(info, "title")
-		updateSets := GenUpdate(info)
+		if server.Title != "" {
+			data["title"] = server.Title
+		}
+
+		if server.Address != "" {
+			data["address"] = server.Address
+		}
+
+		if server.Port != 0 {
+			data["port"] = server.Port
+		}
+
+		data["mtu"] = server.MTU
+		data["dns"] = server.DNS
+
+		updateSets := GenUpdate(data)
 		updatedat := time.Now().Unix()
 		sqlUpdate := fmt.Sprintf("UPDATE %s SET updated_at=?,%s WHERE id=? and status=1", models.ServersTable, updateSets)
-
 		models.DBExec(
 			sqlUpdate,
 			updatedat,
 			serverID,
 		)
-		return serverUpdateSucceed
+		return ServerUpdateSucceed
 	}
-	return serverNotFound
+	return ServerNotFound
 }
 
 // QueryServer 查找服务器
-func QueryServer(sid int) (data map[string]interface{}) {
+func QueryServer(id int) (data models.Servers) {
 	var serverID int
 	var serverTitle string
 	var serverAddress string
@@ -129,7 +116,7 @@ func QueryServer(sid int) (data map[string]interface{}) {
 	var srerverDNS string
 
 	serverSelect := fmt.Sprintf("SELECT id,title,address,port,lan_ip,lan_netmask,mtu,dns FROM %s WHERE status=1 and id=?", models.ServersTable)
-	row := models.DBQueryOne(serverSelect, sid)
+	row := models.DBQueryOne(serverSelect, id)
 	row.Scan(
 		&serverID,
 		&serverTitle,
@@ -141,26 +128,29 @@ func QueryServer(sid int) (data map[string]interface{}) {
 		&srerverDNS,
 	)
 	if serverID != 0 {
-		data = map[string]interface{}{
-			"id":          serverID,
-			"title":       serverTitle,
-			"address":     serverAddress,
-			"port":        serverPort,
-			"lan_ip":      serverLanIP,
-			"lan_netmask": serverLanNetmask,
-			"mtu":         sreverMTU,
-			"dns":         srerverDNS,
+		data = models.Servers{
+			CommonModel: models.CommonModel{
+				ID: serverID,
+			},
+			Title:      serverTitle,
+			Address:    serverAddress,
+			Port:       serverPort,
+			LanIP:      serverLanIP,
+			LanNetmask: serverLanNetmask,
+			MTU:        sreverMTU,
+			DNS:        srerverDNS,
 		}
+		return
 	}
 	return
 }
 
 // DeleteServer 删除服务器
-func DeleteServer(title string) statusCode {
-	if serverID := ServerCheck(title); serverID != 0 {
+func DeleteServer(id int) statusCode {
+	if serverID := GetServerID(id); serverID != 0 {
 		sqlDelete := fmt.Sprintf("UPDATE %s SET status=0 WHERE id=? and status=1", models.ServersTable)
 		models.DBExec(sqlDelete, serverID)
-		return serverDeleteSucceed
+		return ServerDeleteSucceed
 	}
-	return serverNotFound
+	return ServerNotFound
 }

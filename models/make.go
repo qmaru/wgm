@@ -15,6 +15,7 @@ func DBFiled(reflectType reflect.Type, buffer *bytes.Buffer) {
 
 	for i := 0; i < reflectType.NumField(); i++ {
 		jsonTag := reflectType.Field(i).Tag.Get("json")
+		jsonTag = strings.ReplaceAll(jsonTag, ",omitempty", "")
 		dbTag := reflectType.Field(i).Tag.Get("db")
 
 		if jsonTag == "" && dbTag == "" {

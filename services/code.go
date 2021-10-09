@@ -1,129 +1,87 @@
 package services
 
-import (
-	"fmt"
-	"net"
-	"strings"
-)
-
 type statusCode int
 
 const (
-	userCreateSucceed statusCode = iota
-	userUpdateSucceed
-	userDeleteSucceed
-	userNotFound
-	userHasExist
-	userIPError
-	serverCreateSucceed
-	serverUpdateSucceed
-	serverDeleteSucceed
-	serverNotFound
-	serverTitleRequired
-	serverHasExist
-	serverIPError
-	ruleCreateSucceed
-	ruleUpdateSucceed
-	ruleDeleteSucceed
-	ruleNotFound
-	ruleHasExist
-	ruleIPError
-	ruleMapCreateSucceed
-	ruleMapUpdateSucceed
-	ruleMapDeleteSucceed
-	ruleMapNotFound
-	ruleMapHasExist
+	UserCreateSucceed statusCode = iota
+	UserUpdateSucceed
+	UserDeleteSucceed
+	UserNotFound
+	UserHasExist
+	UserIPError
+	UserIPDuplicate
+	ServerCreateSucceed
+	ServerUpdateSucceed
+	ServerDeleteSucceed
+	ServerNotFound
+	ServerTitleRequired
+	ServerHasExist
+	ServerIPError
+	RuleCreateSucceed
+	RuleUpdateSucceed
+	RuleDeleteSucceed
+	RuleNotFound
+	RuleHasExist
+	RuleIPError
+	RuleMapCreateSucceed
+	RuleMapUpdateSucceed
+	RuleMapDeleteSucceed
+	RuleMapNotFound
+	RuleMapHasExist
 )
 
 func (code statusCode) String() string {
 	switch code {
-	case userCreateSucceed:
+	case UserCreateSucceed:
 		return "Create User Succeed"
-	case userUpdateSucceed:
+	case UserUpdateSucceed:
 		return "Update User Succeed"
-	case userDeleteSucceed:
+	case UserDeleteSucceed:
 		return "Delete User Succeed"
-	case userNotFound:
+	case UserNotFound:
 		return "User Not Found"
-	case userHasExist:
+	case UserHasExist:
 		return "User Has Exist"
-	case userIPError:
+	case UserIPError:
 		return "User IP Error"
-	case serverCreateSucceed:
+	case UserIPDuplicate:
+		return "User IP Duplicate"
+	case ServerCreateSucceed:
 		return "Create Server Succeed"
-	case serverUpdateSucceed:
+	case ServerUpdateSucceed:
 		return "Update Server Succeed"
-	case serverDeleteSucceed:
+	case ServerDeleteSucceed:
 		return "Delete Server Succeed"
-	case serverNotFound:
+	case ServerNotFound:
 		return "Server Not Found"
-	case serverTitleRequired:
+	case ServerTitleRequired:
 		return "Server Title Required"
-	case serverHasExist:
+	case ServerHasExist:
 		return "Server Has Exist"
-	case serverIPError:
+	case ServerIPError:
 		return "Server IP Error"
-	case ruleCreateSucceed:
+	case RuleCreateSucceed:
 		return "Create Rule Succeed"
-	case ruleUpdateSucceed:
+	case RuleUpdateSucceed:
 		return "Update Rule Succeed"
-	case ruleDeleteSucceed:
+	case RuleDeleteSucceed:
 		return "Delete Rule Succeed"
-	case ruleNotFound:
+	case RuleNotFound:
 		return "Rule Not Found"
-	case ruleHasExist:
+	case RuleHasExist:
 		return "Rule Has Exist"
-	case ruleIPError:
-		return "Rule IP Error"
-	case ruleMapCreateSucceed:
+	case RuleIPError:
+		return "Rule IP Error: IP/Netmask"
+	case RuleMapCreateSucceed:
 		return "Create RuleMap Succeed"
-	case ruleMapUpdateSucceed:
+	case RuleMapUpdateSucceed:
 		return "Update RuleMap Succeed"
-	case ruleMapDeleteSucceed:
+	case RuleMapDeleteSucceed:
 		return "Delete RuleMap Succeed"
-	case ruleMapNotFound:
+	case RuleMapNotFound:
 		return "RuleMap Not Found"
-	case ruleMapHasExist:
+	case RuleMapHasExist:
 		return "RuleMap Has Exist"
 	}
 	return "codeError"
-}
-
-// LanValidator 检查 IP 和 掩码 是否符合规范
-func LanValidator(cidr string) (bool, string, string) {
-	ip, subnet, err := net.ParseCIDR(cidr)
-	if err != nil {
-		return false, "", ""
-	}
-	ipStr := ip.String()
-	subnetStr := subnet.String()
-	ipAndNetmask := strings.Split(subnetStr, "/")
-	netmask := ipAndNetmask[1]
-	return true, ipStr, netmask
-}
-
-// IPCheck 检查 IP 是否在划分的范围内
-func IPcheck(ip string, cidr string) bool {
-	_, subnet, _ := net.ParseCIDR(cidr)
-	nip := net.ParseIP(ip)
-	return subnet.Contains(nip)
-}
-
-func GenUpdate(data map[string]interface{}) string {
-	updateStr := []string{}
-	for k, v := range data {
-		var kv string
-		if v != " " {
-			switch v.(type) {
-			case string:
-				kv = fmt.Sprintf(`%s='%s'`, k, v)
-			case int:
-				kv = fmt.Sprintf(`%s='%d'`, k, v)
-			}
-		} else {
-			kv = fmt.Sprintf(`%s=''`, k)
-		}
-		updateStr = append(updateStr, kv)
-	}
-	return strings.Join(updateStr, ",")
 }

@@ -10,9 +10,26 @@ const (
 // CommonModel 公共结构
 type CommonModel struct {
 	ID        int `json:"id" db:"INTEGER;PRIMARY KEY"`
-	CreatedAt int `json:"created_at" db:"INTEGER;DEFAULT 0"`
-	UpdatedAt int `json:"updated_at" db:"INTEGER;DEFAULT 0"`
-	Status    int `json:"status" db:"CHAR(1);DEFAULT 1"`
+	CreatedAt int `json:"created_at,omitempty" db:"INTEGER;DEFAULT 0"`
+	UpdatedAt int `json:"updated_at,omitempty" db:"INTEGER;DEFAULT 0"`
+	Status    int `json:"status,omitempty" db:"CHAR(1);DEFAULT 1"`
+}
+
+// Servers 中心服务器表
+//	Title: 服务器名字
+//	Address: 服务器监听地址
+//	Port: 服务器监听端口
+//	LanIP / LanNetmask: 局域网划分
+//	MTU / DNS 局域网组网一般无需设置
+type Servers struct {
+	CommonModel
+	Title      string `json:"title" db:"TEXT;NOT NULL"`
+	Address    string `json:"address" db:"TEXT;NOT NULL"`
+	Port       int    `json:"port" db:"INTEGER;NOT NULL"`
+	LanIP      string `json:"lan_ip" db:"TEXT;NOT NULL"`
+	LanNetmask string `json:"lan_netmask" db:"TEXT;NOT NULL"`
+	MTU        string `json:"mtu" db:"INTEGER;DEFAULT ''"`
+	DNS        string `json:"dns" db:"TEXT;DEFAULT ''"`
 }
 
 // Users 用户表
@@ -35,27 +52,10 @@ type Users struct {
 	PersistentKeepalive int    `json:"keepalive" db:"INTEGER;DEFAULT 25"`
 }
 
-// Servers 中心服务器表
-//	Title: 服务器名字
-//	Address: 服务器监听地址
-//	Port: 服务器监听端口
-//	LanIP / LanNetmask: 局域网划分
-//	MTU / DNS 局域网组网一般无需设置
-type Servers struct {
-	CommonModel
-	Title      string `json:"title" db:"TEXT;NOT NULL"`
-	Address    string `json:"address" db:"TEXT;NOT NULL"`
-	Port       int    `json:"port" db:"INTEGER;NOT NULL"`
-	LanIP      string `json:"lan_ip" db:"TEXT;NOT NULL"`
-	LanNetmask string `json:"lan_netmask" db:"TEXT;NOT NULL"`
-	MTU        int    `json:"mtu" db:"INTEGER;DEFAULT ''"`
-	DNS        string `json:"dns" db:"TEXT;DEFAULT ''"`
-}
-
 // Rules AllowedIP 规则表
 type Rules struct {
 	CommonModel
-	AllowedIP string `json:"allowedip" db:"TEXT;DEFAULT ''"`
+	AllowedIP string `json:"allowedip" db:"TEXT;NOT NULL"`
 }
 
 // RuleMap 额外规则映射
