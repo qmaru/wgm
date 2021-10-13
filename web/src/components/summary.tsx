@@ -21,13 +21,21 @@ import Divider from '@mui/material/Divider'
 import Tooltip from '@mui/material/Tooltip'
 
 import { CopyToClipboard } from 'react-copy-to-clipboard'
+import QRCode from "react-qr-code"
 import { useSnackbar } from 'notistack'
 import { DefaultMsgOption } from '../App'
 
 export default function Summary() {
   const [allData, setAllData] = useState<any>([])
+  const [cfgTitle, setCfgTitle] = useState<string>("")
   const [nodeCfg, setNodeCfg] = useState<string>("")
+  const [QRCfg, setQRCfg] = useState<string>("")
   const { enqueueSnackbar } = useSnackbar()
+
+  const [qrOpen, setQROpen] = useState<boolean>(false)
+  const QRClose = () => {
+    setQROpen(false)
+  }
 
   const [copyOpen, setCopyOpen] = useState<boolean>(false)
   const CopyClose = () => {
@@ -38,7 +46,7 @@ export default function Summary() {
     const [nodeCopy, setNodeCopy] = useState<boolean>(false)
     return (
       <Dialog onClose={props.copyClose} open={props.copyOpen}>
-        <DialogTitle>当前配置</DialogTitle>
+        <DialogTitle>{cfgTitle}</DialogTitle>
         <DialogContent>
           <Typography sx={{ whiteSpace: "pre-line" }}>
             {props.copyData}
@@ -56,7 +64,18 @@ export default function Summary() {
     )
   }
 
-  const ShowNodeCfg = (type: string, serverTitle: string, nodeName: string) => {
+  const QRWrapper = (props: any) => {
+    return (
+      <Dialog onClose={props.qrClose} open={props.qrOpen}>
+        <DialogTitle>{cfgTitle}</DialogTitle>
+        <DialogContent sx={{m:0}}>
+          <QRCode value={props.qrData} size={256} fgColor="#000000" />
+        </DialogContent>
+      </Dialog >
+    )
+  }
+
+  const ShowNodeCfg = (type: string, serverTitle: string, nodeName: string, isOpen: boolean) => {
     const para: string = `type=${type}&server=${serverTitle}&node=${nodeName}`
     const url: string = `http://127.0.0.1:8373/api/v1/data/config?${para}`
     fetch(url, {
@@ -65,11 +84,15 @@ export default function Summary() {
       .then(response => {
         const status: number = response.status
         if (status === 1) {
-          DefaultMsgOption.variant = "success"
-          enqueueSnackbar('读取配置文件成功', DefaultMsgOption)
           const data: any = response.data
-          setNodeCfg(data)
-          setCopyOpen(true)
+          setCfgTitle(nodeName)
+          if (isOpen) {
+            setNodeCfg(data)
+            setCopyOpen(true)
+          } else {
+            setQROpen(true)
+            setQRCfg(data)
+          }
         }
       }).catch(
         () => {
@@ -87,8 +110,6 @@ export default function Summary() {
       .then(response => {
         const status: number = response.status
         if (status === 1) {
-          DefaultMsgOption.variant = "success"
-          enqueueSnackbar('加载完成', DefaultMsgOption)
           const data: any = response.data
           setAllData(data)
         } else {
@@ -113,18 +134,29 @@ export default function Summary() {
       cfgType = "server"
     }
     return (
-      <Card>
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div" color={props.isServer === 0 ? "" : "error"}>
-            {props.name}
-          </Typography>
-          <Typography sx={{ mb: 1.5 }} variant="body2" color="text.secondary">
-            {props.lan}
-          </Typography>
-          <Typography sx={{ mb: 1.5 }} variant="body2" color="text.secondary">
-            {props.keepalive}秒
-          </Typography>
-          <Typography variant="body2" component='div'>
+      <Card sx={{ display: 'flex' }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: "50%",
+          textAlign: "center"
+        }}>
+          <CardContent sx={{ flex: '1 0 auto' }}>
+            <Typography component="div" variant="h5" color={cfgType === "server" ? 'error' : ''}>
+              {props.name}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary" component="div">
+              {props.lan}
+            </Typography>
+          </CardContent>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            pl: 1,
+            pb: 1,
+            justifyContent: 'center',
+            flexDirection: 'column',
+          }}>
             <ButtonGroup variant="contained" size='small' color='success'>
               <Tooltip disableFocusListener title={props.prikey}>
                 <Button>私钥</Button>
@@ -133,11 +165,32 @@ export default function Summary() {
                 <Button>公钥</Button>
               </Tooltip>
             </ButtonGroup>
-          </Typography>
-        </CardContent>
-        <CardActions>
-          <Button onClick={() => ShowNodeCfg(cfgType, props.serverName, props.name)}>查看配置</Button>
-        </CardActions>
+            <CardActions>
+              <Button onClick={() => ShowNodeCfg(cfgType, props.serverName, props.name, true)}>查看配置</Button>
+            </CardActions>
+          </Box>
+        </Box>
+        <Box sx={{
+          flex: '1',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+        >
+          <Button
+            onClick={() => ShowNodeCfg(cfgType, props.serverName, props.name, false)}
+          >
+            <Paper
+              elevation={1}
+              sx={{
+                width: 96,
+                height: 96,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>二维码</Paper>
+          </Button>
+        </Box>
       </Card >
     )
   }
@@ -168,14 +221,13 @@ export default function Summary() {
             <Box sx={{ flexGrow: 1, py: 2 }} >
               <Grid
                 container
-                direction="row"
-                justifyContent="flex-start"
-                alignItems="center"
+                justifyContent="center"
+                flexDirection='column'
                 spacing={2}
               >
                 {data.users.map((user: any, index: number) => {
                   return (
-                    <Grid key={"nodeCard" + index} item xs={4} md={6}>
+                    <Grid key={"nodeCard" + index} item xs={12}>
                       {user.user_name !== "" ?
                         <UserCard
                           isServer={user.user_is_server}
@@ -202,6 +254,12 @@ export default function Summary() {
         copyOpen={copyOpen}
         copyClose={CopyClose}
         copyData={nodeCfg}
+      />
+
+      <QRWrapper
+        qrOpen={qrOpen}
+        qrClose={QRClose}
+        qrData={QRCfg}
       />
     </Container>
   )

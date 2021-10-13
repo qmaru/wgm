@@ -20,15 +20,15 @@ var (
 	userServerTitle string
 	userUsername    string
 	userIP          string
-	userExtra       bool
+	userAccess      bool
 	userKeepalive   int
 	userAddCmd      = &cobra.Command{
 		Use:   "create",
 		Short: "Create User",
 		Run: func(cmd *cobra.Command, args []string) {
-			isExtra := 0
-			if userExtra {
-				isExtra = 1
+			isAccess := 0
+			if userAccess {
+				isAccess = 1
 			}
 
 			userServerID := services.GetServerID(userServerTitle)
@@ -36,7 +36,7 @@ var (
 				ServerID:            userServerID,
 				Username:            userUsername,
 				IP:                  userIP,
-				IsExtra:             isExtra,
+				IsAccess:            isAccess,
 				PersistentKeepalive: userKeepalive,
 			}
 
@@ -51,16 +51,16 @@ var (
 			userID := services.GetUserID(userUsername)
 			userServerID := services.GetServerID(userServerTitle)
 
-			isExtra := 0
-			if userExtra {
-				isExtra = 1
+			isAccess := 0
+			if userAccess {
+				isAccess = 1
 			}
 
 			info := models.Users{
 				ServerID:            userServerID,
 				Username:            userUsername,
 				IP:                  userIP,
-				IsExtra:             isExtra,
+				IsAccess:            isAccess,
 				PersistentKeepalive: userKeepalive,
 			}
 
@@ -94,7 +94,7 @@ func init() {
 	userAddCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userAddCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
 	userAddCmd.Flags().StringVarP(&userIP, "ip", "i", "", "User IP")
-	userAddCmd.Flags().BoolVarP(&userExtra, "extra", "e", false, "Open Extra Rule")
+	userAddCmd.Flags().BoolVarP(&userAccess, "access", "a", false, "Access Lan")
 	userAddCmd.Flags().IntVarP(&userKeepalive, "keepalive", "k", 25, "User Keepalive")
 
 	userAddCmd.MarkFlagRequired("server")
@@ -104,7 +104,7 @@ func init() {
 	userUpdateCmd.Flags().StringVarP(&userServerTitle, "server", "s", "", "Server Title")
 	userUpdateCmd.Flags().StringVarP(&userUsername, "user", "u", "", "User Name")
 	userUpdateCmd.Flags().StringVarP(&userIP, "ip", "i", "", "User IP")
-	userUpdateCmd.Flags().BoolVarP(&userExtra, "extra", "e", false, "Open Extra Rule")
+	userUpdateCmd.Flags().BoolVarP(&userAccess, "access", "a", false, "Access Lan")
 	userUpdateCmd.Flags().IntVarP(&userKeepalive, "keepalive", "k", 25, "User Keepalive")
 	userUpdateCmd.MarkFlagRequired("server")
 	userUpdateCmd.MarkFlagRequired("user")

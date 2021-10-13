@@ -193,6 +193,7 @@ func AllNodes() []map[string]interface{} {
 		users.pubkey,
 		users.ip,
 		users.default_rule,
+		users.is_access,
 		users.is_extra,
 		users.is_server,
 		users.keepalive
@@ -215,11 +216,12 @@ func AllNodes() []map[string]interface{} {
 		var nodePubkey string
 		var nodeIP string
 		var nodeDefaultRule string
+		var nodeIsAccess int
 		var nodeIsExtra int
 		var nodeIsServer int
 		var nodeKeepalive int
 
-		allRows.Scan(&nodeID, &serverID, &serverTitle, &nodeUsername, &nodePrikey, &nodePubkey, &nodeIP, &nodeDefaultRule, &nodeIsExtra, &nodeIsServer, &nodeKeepalive)
+		allRows.Scan(&nodeID, &serverID, &serverTitle, &nodeUsername, &nodePrikey, &nodePubkey, &nodeIP, &nodeDefaultRule, &nodeIsAccess, &nodeIsExtra, &nodeIsServer, &nodeKeepalive)
 		allNodes = append(allNodes, map[string]interface{}{
 			"id":           nodeID,
 			"server_id":    serverID,
@@ -229,6 +231,7 @@ func AllNodes() []map[string]interface{} {
 			"pubkey":       nodePubkey,
 			"ip":           nodeIP,
 			"default_rule": nodeDefaultRule,
+			"is_access":    nodeIsAccess,
 			"is_extra":     nodeIsExtra,
 			"is_server":    nodeIsServer,
 			"keepalive":    nodeKeepalive,

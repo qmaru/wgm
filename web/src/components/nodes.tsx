@@ -44,6 +44,7 @@ export default function Clients() {
   const [clientIP, setClientIP] = useState<string>("")
   const [clientExtra, setClientExtra] = useState<boolean>(false)
   const [clientCenter, setClientCenter] = useState<boolean>(false)
+  const [clientAccess, setClientAccess] = useState<boolean>(false)
   const [clientKeep, setClientKeep] = useState<number>(25)
 
   const [routers, setRouters] = useState<string[]>([])
@@ -61,6 +62,7 @@ export default function Clients() {
     setClientIP("")
     setClientExtra(false)
     setClientCenter(false)
+    setClientAccess(false)
     setClientKeep(25)
     setRouters([])
   }
@@ -93,6 +95,10 @@ export default function Clients() {
     setClientCenter(event.target.checked)
   }
 
+  const clientAccessChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setClientAccess(event.target.checked)
+  }
+
   const clientKeepChange = (event: any) => {
     setClientKeep(event.target.value)
   }
@@ -108,6 +114,12 @@ export default function Clients() {
       "username": clientName,
       "ip": clientIP,
       "keepalive": clientKeep,
+    }
+
+    if (clientAccess) {
+      client_data["is_access"] = 1
+    } else {
+      client_data["is_access"] = 0
     }
 
     if (clientExtra) {
@@ -422,6 +434,20 @@ export default function Clients() {
               value={clientKeep}
               onChange={clientKeepChange}
             />
+          </Grid>
+
+          <Grid item>
+            <FormGroup sx={{ left: 36 }}>
+              <FormControlLabel
+                label="允许进入内网"
+                control={
+                  <Checkbox
+                    checked={clientAccess}
+                    onChange={clientAccessChange}
+                  />
+                }
+              />
+            </FormGroup>
           </Grid>
 
           <Grid item>

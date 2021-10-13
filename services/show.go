@@ -228,7 +228,7 @@ func ServerCfg(serverTitle, username string, extraRule bool) string {
 				users
 			LEFT JOIN rulemap on users.id = rulemap.user_id
 			LEFT JOIN rules on rules.id = rulemap.rule_id
-			WHERE users.status = 1 and rulemap.status = 1 and rules.status = 1 and users.username=? and users.is_extra=1 and users.server_id = ?
+			WHERE users.status = 1 and rulemap.status = 1 and rules.status = 1 and users.username=? and users.is_access=1 and users.server_id = ?
 		`
 			ruleRows, _ := models.DBQuery(ruleQuery, pusername, serverID)
 			defer ruleRows.Close()

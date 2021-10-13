@@ -28,6 +28,7 @@ func NodeAdd(c *gin.Context) {
 		ServerID:            ParseID(serverID),
 		Username:            user.Username,
 		IP:                  user.IP,
+		IsAccess:            user.IsAccess,
 		IsExtra:             user.IsExtra,
 		IsServer:            user.IsServer,
 		PersistentKeepalive: user.PersistentKeepalive,

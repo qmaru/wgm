@@ -39,6 +39,9 @@ type Servers struct {
 //	Pubkey: 公钥
 //	IP: 分配IP
 //	DefaultRule: 默认Rule
+//	IsExtra: 允许分配其他路由
+//	IsServer: 作为中心节点
+//	IsAccess: 允许其他节点访问内网
 //	PersistentKeepalive: 重连间隔时间
 type Users struct {
 	CommonModel
@@ -50,6 +53,7 @@ type Users struct {
 	DefaultRule         string `json:"default_rule" db:"TEXT;DEFAULT ''"`
 	IsExtra             int    `json:"is_extra" db:"TINYINT;DEFAULT 0"`
 	IsServer            int    `json:"is_server" db:"TINYINT;DEFAULT 0"`
+	IsAccess            int    `json:"is_access" db:"TINYINT;DEFAULT 0"`
 	PersistentKeepalive int    `json:"keepalive" db:"INTEGER;DEFAULT 25"`
 }
 

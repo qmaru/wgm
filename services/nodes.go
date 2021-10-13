@@ -68,11 +68,12 @@ func CreateUser(user models.Users) statusCode {
 		userPubkey := pubkey.String()
 
 		userDefaultRule := fmt.Sprintf("%s/%s", userIP, "32")
+		userIsAccess := user.IsAccess
 		userIsExtra := user.IsExtra
 		userIsServer := user.IsServer
 		userKeepalive := user.PersistentKeepalive
 
-		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_extra,is_server,keepalive) VALUES (?,?,?,?,?,?,?,?,?,?,?)", models.UsersTable)
+		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_access,is_extra,is_server,keepalive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", models.UsersTable)
 		models.DBExec(
 			sqlInsert,
 			createdat,
@@ -83,6 +84,7 @@ func CreateUser(user models.Users) statusCode {
 			userPubkey,
 			userIPLan,
 			userDefaultRule,
+			userIsAccess,
 			userIsExtra,
 			userIsServer,
 			userKeepalive,
@@ -133,6 +135,7 @@ func UpdateUser(serverID, userID int, user models.Users) statusCode {
 				data["username"] = user.Username
 			}
 
+			data["is_access"] = user.IsAccess
 			data["is_extra"] = user.IsExtra
 			data["is_server"] = user.IsServer
 
@@ -176,11 +179,12 @@ func QueryUser(serverID, userID int) (data models.Users) {
 		var userPubkey string
 		var userIP string
 		var userDefaultRule string
+		var userIsAccess int
 		var userIsExtra int
 		var userIsServer int
 		var userPersistentKeepalive int
 
-		userSelect := fmt.Sprintf("SELECT id,server_id,username,prikey,pubkey,ip,default_rule,is_extra,is_server,keepalive FROM %s WHERE status=1 and server_id=? and id=?", models.UsersTable)
+		userSelect := fmt.Sprintf("SELECT id,server_id,username,prikey,pubkey,ip,default_rule,is_access,is_extra,is_server,keepalive FROM %s WHERE status=1 and server_id=? and id=?", models.UsersTable)
 		row := models.DBQueryOne(userSelect, serverID, userID)
 		row.Scan(
 			&userID,
@@ -190,6 +194,7 @@ func QueryUser(serverID, userID int) (data models.Users) {
 			&userPubkey,
 			&userIP,
 			&userDefaultRule,
+			&userIsAccess,
 			&userIsExtra,
 			&userIsServer,
 			&userPersistentKeepalive,
@@ -205,6 +210,7 @@ func QueryUser(serverID, userID int) (data models.Users) {
 				Pubkey:              userPubkey,
 				IP:                  userIP,
 				DefaultRule:         userDefaultRule,
+				IsAccess:            userIsAccess,
 				IsExtra:             userIsExtra,
 				IsServer:            userIsServer,
 				PersistentKeepalive: userPersistentKeepalive,
