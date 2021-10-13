@@ -121,9 +121,9 @@ func TestShowRuleList(t *testing.T) {
 }
 
 func TestShowUserCfg(t *testing.T) {
-	serverCfg := services.ShowUserCfg(1, 1, "server", "", true, "")
+	serverCfg := services.ShowUserCfg("server", "server", "server", true, "")
 	fmt.Println(serverCfg)
 
-	clientCfg := services.ShowUserCfg(2, 1, "server", "server", true, "")
+	clientCfg := services.ShowUserCfg("client", "server", "node1", true, "")
 	fmt.Println(clientCfg)
 }

@@ -34,6 +34,10 @@ func CreateUser(user models.Users) statusCode {
 
 	userID := GetUserID(userUsername)
 
+	if GetPeerID(userServerID) != 0 {
+		return UserCenterExist
+	}
+
 	if UserCheck(userServerID, userID) != 0 {
 		return UserHasExist
 	}
@@ -46,10 +50,6 @@ func CreateUser(user models.Users) statusCode {
 		userIP := user.IP
 
 		if !IPcheck(userIP, serverLan) {
-			return UserIPError
-		}
-
-		if userIP == serverLanIP {
 			return UserIPError
 		}
 
@@ -69,8 +69,10 @@ func CreateUser(user models.Users) statusCode {
 
 		userDefaultRule := fmt.Sprintf("%s/%s", userIP, "32")
 		userIsExtra := user.IsExtra
+		userIsServer := user.IsServer
+		userKeepalive := user.PersistentKeepalive
 
-		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_extra) VALUES (?,?,?,?,?,?,?,?,?)", models.UsersTable)
+		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_extra,is_server,keepalive) VALUES (?,?,?,?,?,?,?,?,?,?,?)", models.UsersTable)
 		models.DBExec(
 			sqlInsert,
 			createdat,
@@ -82,6 +84,8 @@ func CreateUser(user models.Users) statusCode {
 			userIPLan,
 			userDefaultRule,
 			userIsExtra,
+			userIsServer,
+			userKeepalive,
 		)
 		return UserCreateSucceed
 	}
@@ -130,6 +134,7 @@ func UpdateUser(serverID, userID int, user models.Users) statusCode {
 			}
 
 			data["is_extra"] = user.IsExtra
+			data["is_server"] = user.IsServer
 
 			updatedat := time.Now().Unix()
 			updateSets := GenUpdate(data)
@@ -172,9 +177,10 @@ func QueryUser(serverID, userID int) (data models.Users) {
 		var userIP string
 		var userDefaultRule string
 		var userIsExtra int
+		var userIsServer int
 		var userPersistentKeepalive int
 
-		userSelect := fmt.Sprintf("SELECT id,server_id,username,prikey,pubkey,ip,default_rule,is_extra,keepalive FROM %s WHERE status=1 and server_id=? and id=?", models.UsersTable)
+		userSelect := fmt.Sprintf("SELECT id,server_id,username,prikey,pubkey,ip,default_rule,is_extra,is_server,keepalive FROM %s WHERE status=1 and server_id=? and id=?", models.UsersTable)
 		row := models.DBQueryOne(userSelect, serverID, userID)
 		row.Scan(
 			&userID,
@@ -185,6 +191,7 @@ func QueryUser(serverID, userID int) (data models.Users) {
 			&userIP,
 			&userDefaultRule,
 			&userIsExtra,
+			&userIsServer,
 			&userPersistentKeepalive,
 		)
 		if userID != 0 {
@@ -199,6 +206,7 @@ func QueryUser(serverID, userID int) (data models.Users) {
 				IP:                  userIP,
 				DefaultRule:         userDefaultRule,
 				IsExtra:             userIsExtra,
+				IsServer:            userIsServer,
 				PersistentKeepalive: userPersistentKeepalive,
 			}
 			return

@@ -39,18 +39,17 @@ var (
 			services.ShowRuleList()
 		},
 	}
-	cfgType      int
-	cfgServerID  int
-	cfgUsername  string
-	cfgMainnode  string
-	cfgExtraRule bool
-	cfgName      string
-	cfgCmd       = &cobra.Command{
+	cfgType        string
+	cfgServerTitle string
+	cfgNodename    string
+	cfgExtraRule   bool
+	cfgName        string
+	cfgCmd         = &cobra.Command{
 		Use:   "config",
 		Short: "Show Config Details",
 		Run: func(cmd *cobra.Command, args []string) {
 			if TypeCheck(cfgType) {
-				cfgInfo := services.ShowUserCfg(cfgType, cfgServerID, cfgUsername, cfgMainnode, cfgExtraRule, cfgName)
+				cfgInfo := services.ShowUserCfg(cfgType, cfgServerTitle, cfgNodename, cfgExtraRule, cfgName)
 				fmt.Println(cfgInfo)
 			} else {
 				fmt.Println("Type Error")
@@ -60,15 +59,14 @@ var (
 )
 
 func init() {
-	cfgCmd.Flags().IntVarP(&cfgType, "type", "t", 0, "Config Type: 1 or 2")
-	cfgCmd.Flags().IntVarP(&cfgServerID, "server", "s", 0, "Server ID")
-	cfgCmd.Flags().StringVarP(&cfgUsername, "user", "u", "", "User Name")
-	cfgCmd.Flags().StringVarP(&cfgMainnode, "node", "m", "", "Type 1 User Name (client only)")
+	cfgCmd.Flags().StringVarP(&cfgType, "type", "t", "", "Config Type: s(erver) or c(lient)")
+	cfgCmd.Flags().StringVarP(&cfgServerTitle, "server", "s", "", "Public Server Name")
+	cfgCmd.Flags().StringVarP(&cfgNodename, "node", "c", "", "Node Name")
 	cfgCmd.Flags().BoolVarP(&cfgExtraRule, "extra", "e", false, "Add Extra Rule")
-	cfgCmd.Flags().StringVarP(&cfgName, "name", "n", "", "Config Name (Create configuration if specified)")
+	cfgCmd.Flags().StringVarP(&cfgName, "name", "", "", "Config Name (Create configuration if specified)")
 	cfgCmd.MarkFlagRequired("type")
 	cfgCmd.MarkFlagRequired("server")
-	cfgCmd.MarkFlagRequired("user")
+	cfgCmd.MarkFlagRequired("node")
 
 	usersCmd.Flags().IntVarP(&showUserServerID, "server", "s", 0, "Server ID")
 	usersCmd.Flags().BoolVarP(&showUserPlain, "plain", "p", false, "Plain Text")
@@ -79,8 +77,8 @@ func init() {
 	showCmd.AddCommand(cfgCmd)
 }
 
-func TypeCheck(t int) bool {
-	for _, i := range []int{1, 2} {
+func TypeCheck(t string) bool {
+	for _, i := range []string{"server", "client"} {
 		if t == i {
 			return true
 		}

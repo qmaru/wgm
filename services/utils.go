@@ -9,6 +9,14 @@ import (
 	"wgm/models"
 )
 
+func GetPeerID(serverID int) int {
+	var userID int
+	sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and is_server=1 and server_id=?", models.UsersTable)
+	row := models.DBQueryOne(sql, serverID)
+	row.Scan(&userID)
+	return userID
+}
+
 func GetServerID(i interface{}) int {
 	checkType := reflect.TypeOf(i).String()
 	var serverID int
@@ -26,17 +34,17 @@ func GetServerID(i interface{}) int {
 
 func GetUserID(i interface{}) int {
 	checkType := reflect.TypeOf(i).String()
-	var serverID int
+	var userID int
 	if checkType == "string" {
 		sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and username=?", models.UsersTable)
 		row := models.DBQueryOne(sql, i)
-		row.Scan(&serverID)
+		row.Scan(&userID)
 	} else if checkType == "int" {
 		sql := fmt.Sprintf("SELECT id FROM %s WHERE status=1 and id=?", models.UsersTable)
 		row := models.DBQueryOne(sql, i)
-		row.Scan(&serverID)
+		row.Scan(&userID)
 	}
-	return serverID
+	return userID
 }
 
 // LanValidator 检查 IP 和 掩码 是否符合规范

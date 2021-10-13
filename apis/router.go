@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"wgm/assets"
 	"wgm/config"
 	"wgm/utils"
 
@@ -89,9 +90,10 @@ func Run() {
 	// 跨域
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
-	config.AllowMethods = []string{"GET", "POST", "OPTION"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTION"}
 	router.Use(cors.New(config))
 
+	router.Use(assets.StaticHand())
 	router.Use(gin.Recovery())
 	router.Use(Logger())
 
@@ -102,11 +104,11 @@ func Run() {
 		v1.PUT("/server/:serverID", ServerUpdate)
 		v1.DELETE("/server/:serverID", ServerDel)
 
-		v1.GET("/client/:serverID/:userID", ClientInfo)
-		v1.POST("/client/:serverID", ClientAdd)
-		v1.PUT("/client/:serverID/:userID", ClientUpdate)
-		v1.PUT("/client/:serverID/:userID/key", ClientUpdateKey)
-		v1.DELETE("/client/:serverID/:userID", ClientDel)
+		v1.GET("/node/:serverID/:userID", NodeInfo)
+		v1.POST("/node/:serverID", NodeAdd)
+		v1.PUT("/node/:serverID/:userID", NodeUpdate)
+		v1.PUT("/node/:serverID/:userID/key", NodeUpdateKey)
+		v1.DELETE("/node/:serverID/:userID", NodeDel)
 
 		v1.POST("/rule", RuleAdd)
 		v1.PUT("/rule/:ruleID", RuleUpdate)
@@ -114,6 +116,13 @@ func Run() {
 
 		v1.POST("/rulemap/:ruleID/:userID", RuleMapAdd)
 		v1.DELETE("/rulemap/:ruleID/:userID", RuleMapDel)
+
+		v1.GET("/data/rulelist", RuleList)
+		v1.GET("/data/serverlist", ServerList)
+		v1.GET("/data/nodelist", NodeList)
+		v1.GET("/data/servergroup", ServerGroup)
+		v1.GET("/data/config", ShowConfig)
+		v1.PUT("/data/userrule/:userID", UserRuleSets)
 	}
 
 	router.Run(listenAddr)

@@ -49,6 +49,7 @@ type Users struct {
 	IP                  string `json:"ip" db:"TEXT;NOT NULL"`
 	DefaultRule         string `json:"default_rule" db:"TEXT;DEFAULT ''"`
 	IsExtra             int    `json:"is_extra" db:"TINYINT;DEFAULT 0"`
+	IsServer            int    `json:"is_server" db:"TINYINT;DEFAULT 0"`
 	PersistentKeepalive int    `json:"keepalive" db:"INTEGER;DEFAULT 25"`
 }
 

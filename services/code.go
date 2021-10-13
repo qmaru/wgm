@@ -8,6 +8,7 @@ const (
 	UserDeleteSucceed
 	UserNotFound
 	UserHasExist
+	UserCenterExist
 	UserIPError
 	UserIPDuplicate
 	ServerCreateSucceed
@@ -42,6 +43,8 @@ func (code statusCode) String() string {
 		return "User Not Found"
 	case UserHasExist:
 		return "User Has Exist"
+	case UserCenterExist:
+		return "User Center Has Exist"
 	case UserIPError:
 		return "User IP Error"
 	case UserIPDuplicate:

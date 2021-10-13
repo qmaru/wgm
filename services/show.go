@@ -157,7 +157,8 @@ func ShowRuleList() {
 	Output("ruleList", ruleData)
 }
 
-func ServerCfg(server int, username string, extraRule bool) (string, string) {
+func ServerCfg(serverTitle, username string, extraRule bool) string {
+	serverID := GetServerID(serverTitle)
 	interfaceQuery := `
 		SELECT
 			users.prikey,
@@ -172,7 +173,7 @@ func ServerCfg(server int, username string, extraRule bool) (string, string) {
 		WHERE servers.status = 1 and users.status = 1 and servers.id = ? and users.username = ?
 	`
 
-	interfaceRow := models.DBQueryOne(interfaceQuery, server, username)
+	interfaceRow := models.DBQueryOne(interfaceQuery, serverID, username)
 
 	var iPrikey string
 	var iIP string
@@ -206,7 +207,7 @@ func ServerCfg(server int, username string, extraRule bool) (string, string) {
 	WHERE users.status = 1 and servers.status = 1 and servers.id = ? and users.username != ?
 	`
 
-	peerRows, _ := models.DBQuery(peerQuery, server, username)
+	peerRows, _ := models.DBQuery(peerQuery, serverID, username)
 	defer peerRows.Close()
 	var pusername string
 	var ppubkey string
@@ -229,7 +230,7 @@ func ServerCfg(server int, username string, extraRule bool) (string, string) {
 			LEFT JOIN rules on rules.id = rulemap.rule_id
 			WHERE users.status = 1 and rulemap.status = 1 and rules.status = 1 and users.username=? and users.is_extra=1 and users.server_id = ?
 		`
-			ruleRows, _ := models.DBQuery(ruleQuery, pusername, server)
+			ruleRows, _ := models.DBQuery(ruleQuery, pusername, serverID)
 			defer ruleRows.Close()
 
 			var rAllowedIP string
@@ -250,10 +251,11 @@ func ServerCfg(server int, username string, extraRule bool) (string, string) {
 	}
 
 	cfg := cfgInterface + cfgPrikey + cfgAddress + cfgListenPort + cfgMTU + cfgDNS + "\n" + cfgPeers
-	return cfg, iTitle
+	return cfg
 }
 
-func ClientCfg(server int, username, mainnode string, extraRule bool) (string, string) {
+func ClientCfg(serverTitle, username string, extraRule bool) string {
+	serverID := GetServerID(serverTitle)
 	interfaceQuery := `
 		SELECT
 			users.prikey,
@@ -267,7 +269,7 @@ func ClientCfg(server int, username, mainnode string, extraRule bool) (string, s
 		WHERE servers.status = 1 and users.status = 1 and servers.id = ? and users.username = ?
 	`
 
-	interfaceRow := models.DBQueryOne(interfaceQuery, server, username)
+	interfaceRow := models.DBQueryOne(interfaceQuery, serverID, username)
 
 	var iPrikey string
 	var iIP string
@@ -299,10 +301,11 @@ func ClientCfg(server int, username, mainnode string, extraRule bool) (string, s
 	FROM
 		users
 	LEFT JOIN servers on users.server_id = servers.id
-	WHERE users.status = 1 and servers.status = 1 and servers.id = ? and users.username = ?
+	WHERE users.status = 1 and servers.status = 1 and servers.id = ? and users.id = ?
 	`
 
-	peerRows, _ := models.DBQuery(peerQuery, server, mainnode)
+	peerID := GetPeerID(serverID)
+	peerRows, _ := models.DBQuery(peerQuery, serverID, peerID)
 	defer peerRows.Close()
 
 	var paddress string
@@ -330,7 +333,7 @@ func ClientCfg(server int, username, mainnode string, extraRule bool) (string, s
 			WHERE users.status = 1 and rulemap.status = 1 and rules.status = 1 and users.username=? and users.server_id = ?
 		`
 
-			ruleRows, _ := models.DBQuery(ruleQuery, username, server)
+			ruleRows, _ := models.DBQuery(ruleQuery, username, serverID)
 			defer ruleRows.Close()
 
 			var rAllowedIP string
@@ -352,20 +355,20 @@ func ClientCfg(server int, username, mainnode string, extraRule bool) (string, s
 	}
 
 	cfg := cfgInterface + cfgPrikey + cfgAddress + cfgMTU + cfgDNS + "\n" + cfgPeers
-	return cfg, iTitle
+	return cfg
 }
 
-func ShowUserCfg(utype int, server int, username, mainnode string, extraRule bool, cfgname string) string {
-	if utype == 1 {
-		cfg, serverTitle := ServerCfg(server, username, extraRule)
+func ShowUserCfg(utype string, serverTitle, nodename string, extraRule bool, cfgname string) string {
+	if utype == "server" {
+		cfg := ServerCfg(serverTitle, nodename, extraRule)
 		if cfgname != "" {
 			MakeConfig(serverTitle, cfgname, cfg)
 		}
 		return cfg
-	} else if utype == 2 {
-		cfg, serverTitle := ClientCfg(server, username, mainnode, extraRule)
+	} else if utype == "client" {
+		cfg := ClientCfg(serverTitle, nodename, extraRule)
 		if cfgname != "" {
-			MakeConfig(serverTitle, username, cfg)
+			MakeConfig(serverTitle, nodename, cfg)
 		}
 		return cfg
 	}

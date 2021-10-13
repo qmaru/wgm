@@ -7,18 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ClientInfo(c *gin.Context) {
+func NodeInfo(c *gin.Context) {
 	serverID := c.Param("serverID")
 	userID := c.Param("userID")
 	data := services.QueryUser(ParseID(serverID), ParseID(userID))
 	if data.CommonModel.ID != 0 {
-		DataHandler(c, 1, "Client Info", data)
+		DataHandler(c, 1, "Node Info", data)
 	} else {
-		DataHandler(c, 0, "Client Not Found", []interface{}{})
+		DataHandler(c, 0, "Node Not Found", []interface{}{})
 	}
 }
 
-func ClientAdd(c *gin.Context) {
+func NodeAdd(c *gin.Context) {
 	c.Header("Content-Typ", "application/json")
 	var user models.Users
 	c.ShouldBindJSON(&user)
@@ -29,6 +29,7 @@ func ClientAdd(c *gin.Context) {
 		Username:            user.Username,
 		IP:                  user.IP,
 		IsExtra:             user.IsExtra,
+		IsServer:            user.IsServer,
 		PersistentKeepalive: user.PersistentKeepalive,
 	}
 	code := services.CreateUser(info)
@@ -39,7 +40,7 @@ func ClientAdd(c *gin.Context) {
 	}
 }
 
-func ClientUpdate(c *gin.Context) {
+func NodeUpdate(c *gin.Context) {
 	c.Header("Content-Typ", "application/json")
 	var user models.Users
 	c.ShouldBindJSON(&user)
@@ -55,7 +56,7 @@ func ClientUpdate(c *gin.Context) {
 	}
 }
 
-func ClientUpdateKey(c *gin.Context) {
+func NodeUpdateKey(c *gin.Context) {
 	c.Header("Content-Typ", "application/json")
 	var user models.Users
 	c.ShouldBindJSON(&user)
@@ -71,7 +72,7 @@ func ClientUpdateKey(c *gin.Context) {
 	}
 }
 
-func ClientDel(c *gin.Context) {
+func NodeDel(c *gin.Context) {
 	serverID := c.Param("serverID")
 	userID := c.Param("userID")
 	code := services.DeleteUser(ParseID(serverID), ParseID(userID))

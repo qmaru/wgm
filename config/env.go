@@ -1,3 +1,3 @@
 package config
 
-const Debug bool = true
+const Debug bool = false

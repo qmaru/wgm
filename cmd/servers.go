@@ -85,7 +85,7 @@ func init() {
 
 	serverUpdateCmd.Flags().StringVar(&serverTitle, "title", "", "Server Title")
 	serverUpdateCmd.Flags().StringVar(&serverAddress, "address", "", "Server Address")
-	serverUpdateCmd.Flags().IntVar(&serverPort, "port", 0, "Server Port")
+	serverUpdateCmd.Flags().IntVar(&serverPort, "port", 443, "Server Port")
 	serverUpdateCmd.Flags().StringVar(&serverLanIP, "ip", "", "Server Lan IP")
 	serverUpdateCmd.Flags().StringVar(&serverLanNetmask, "netmask", "", "Server Lan Netmask")
 	serverUpdateCmd.Flags().StringVar(&serverMTU, "mtu", "", "Server MTU")
