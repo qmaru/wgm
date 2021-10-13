@@ -8,6 +8,7 @@ import TableRow from '@mui/material/TableRow'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
+import Typography from '@mui/material/Typography'
 import ButtonGroup from '@mui/material/ButtonGroup'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
@@ -192,6 +193,7 @@ export default function Clients() {
 
   const ClientEditOn = (server_id: string, client_id: number) => {
     setDataTitle("增加路由")
+    setRouters([])
     setIsEdit(true)
     setDataOpen(true)
     setClientID(client_id)
@@ -214,7 +216,8 @@ export default function Clients() {
       return false
     }
 
-    const url: string = `http://127.0.0.1:8373/api/v1/data/userrule/${clientID}?rules=${ids}`
+    const idGroup: string = ids.join(",")
+    const url: string = `http://127.0.0.1:8373/api/v1/data/userrule/${clientID}?rules=${idGroup}`
     fetch(url, {
       method: "PUT",
     }).then(res => res.json())
@@ -492,70 +495,73 @@ export default function Clients() {
         添加节点
       </Button>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center">ID</TableCell>
-              <TableCell align="center">名称</TableCell>
-              <TableCell align="center">服务器</TableCell>
-              <TableCell align="center">子网IP</TableCell>
-              <TableCell align="center">密钥</TableCell>
-              <TableCell align="center">默认路由</TableCell>
-              <TableCell align="center">额外路由</TableCell>
-              <TableCell align="center">心跳时间</TableCell>
-              <TableCell align="center">操作</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {clientData.map((data: any, index: number) => {
-              return (
-                <TableRow
-                  key={"server-" + data.id}
-                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                >
-                  <TableCell align="center">{data.id}</TableCell>
-                  <TableCell align="center">{data.username}</TableCell>
-                  <TableCell align="center">{data.server_title}</TableCell>
-                  <TableCell align="center">{data.ip}</TableCell>
-                  <TableCell align="center">
-                    <ButtonGroup variant="text" color={data.is_server === 0 ? "primary" : "error"}>
-                      <Tooltip disableFocusListener title={data.prikey}>
-                        <Button>私钥</Button>
-                      </Tooltip>
-                      <Tooltip disableFocusListener title={data.pubkey}>
-                        <Button>公钥</Button>
-                      </Tooltip>
-                    </ButtonGroup>
-                  </TableCell>
-                  <TableCell align="center">{data.default_rule}</TableCell>
-                  <TableCell align="center">{data.is_extra === 0 ? "否" : "是"}</TableCell>
-                  <TableCell align="center">{data.keepalive}</TableCell>
+      {clientData.map((node: any, index: number) => {
+        return (
+          <Container sx={{ padding: 1 }}>
+            <Typography variant="h5" sx={{ p: 1 }}>{node.server_title}</Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">名称</TableCell>
+                    <TableCell align="center">子网IP</TableCell>
+                    <TableCell align="center">密钥</TableCell>
+                    <TableCell align="center">默认路由</TableCell>
+                    <TableCell align="center">额外路由</TableCell>
+                    <TableCell align="center">心跳时间</TableCell>
+                    <TableCell align="center">操作</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {node.users.map((data: any, index: number) => {
+                    return (
+                      <TableRow
+                        key={"server-" + data.id}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell align="center">{data.username}</TableCell>
+                        <TableCell align="center">{data.ip}</TableCell>
+                        <TableCell align="center">
+                          <ButtonGroup variant="text" color={data.is_server === 0 ? "primary" : "error"}>
+                            <Tooltip disableFocusListener title={data.prikey}>
+                              <Button>私钥</Button>
+                            </Tooltip>
+                            <Tooltip disableFocusListener title={data.pubkey}>
+                              <Button>公钥</Button>
+                            </Tooltip>
+                          </ButtonGroup>
+                        </TableCell>
+                        <TableCell align="center">{data.default_rule}</TableCell>
+                        <TableCell align="center">{data.is_extra === 0 ? "否" : "是"}</TableCell>
+                        <TableCell align="center">{data.keepalive}</TableCell>
 
-                  <TableCell align="center">
-                    <ButtonGroup variant="text">
-                      <Button
-                        size='small'
-                        disabled={data.is_extra === 0}
-                        onClick={() => ClientEditOn(data.server_id, data.id)}
-                      >路由</Button>
-                      <Button
-                        size='small'
-                        onClick={() => ClientKeyUpdateOn(data.server_id, data.id, data.username)}
-                      >更新</Button>
-                      <Button
-                        size='small'
-                        color='error'
-                        onClick={() => ClientDel(data.server_id, data.id)}
-                      >删除</Button>
-                    </ButtonGroup>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                        <TableCell align="center">
+                          <ButtonGroup variant="text">
+                            <Button
+                              size='small'
+                              disabled={data.is_extra === 0}
+                              onClick={() => ClientEditOn(data.server_id, data.id)}
+                            >路由</Button>
+                            <Button
+                              size='small'
+                              onClick={() => ClientKeyUpdateOn(data.server_id, data.id, data.username)}
+                            >更新</Button>
+                            <Button
+                              size='small'
+                              color='error'
+                              onClick={() => ClientDel(data.server_id, data.id)}
+                            >删除</Button>
+                          </ButtonGroup>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Container >
+        )
+      })}
 
       <DataWrapper
         dataOpen={dataOpen}

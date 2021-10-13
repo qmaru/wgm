@@ -7,7 +7,7 @@ import (
 	"wgm/models"
 )
 
-func allDataGroupByServer(sData []map[string]interface{}) (dData []map[string]interface{}) {
+func dataGroupByServer(sData []map[string]interface{}) (dData []map[string]interface{}) {
 	i, j := 0, 0
 	groupData := make([][]map[string]interface{}, 0)
 
@@ -52,6 +52,54 @@ func allDataGroupByServer(sData []map[string]interface{}) (dData []map[string]in
 	}
 	return
 }
+
+func nodesGroupByServer(sData []map[string]interface{}) (dData []map[string]interface{}) {
+	i, j := 0, 0
+	groupData := make([][]map[string]interface{}, 0)
+
+	sort.SliceStable(sData, func(i, j int) bool {
+		return sData[i]["server_id"].(int) < sData[j]["server_id"].(int)
+	})
+
+	for {
+		if i >= len(sData) {
+			break
+		}
+
+		for j = i; j < len(sData) && sData[i]["server_id"] == sData[j]["server_id"]; j++ {
+		}
+
+		groupData = append(groupData, sData[i:j])
+		i = j
+	}
+
+	for _, gData := range groupData {
+		mData := make(map[string]interface{})
+		mDetails := make([]map[string]interface{}, 0)
+		for _, gd := range gData {
+			mmData := make(map[string]interface{})
+			mmData["id"] = gd["id"]
+			mmData["username"] = gd["username"]
+			mmData["prikey"] = gd["prikey"]
+			mmData["pubkey"] = gd["pubkey"]
+			mmData["ip"] = gd["ip"]
+			mmData["default_rule"] = gd["default_rule"]
+			mmData["is_access"] = gd["is_access"]
+			mmData["is_extra"] = gd["is_extra"]
+			mmData["is_server"] = gd["is_server"]
+			mmData["keepalive"] = gd["keepalive"]
+
+			mData["server_id"] = gd["server_id"]
+			mData["server_title"] = gd["server_title"]
+
+			mDetails = append(mDetails, mmData)
+		}
+		mData["users"] = mDetails
+		dData = append(dData, mData)
+	}
+	return
+}
+
 
 func AllServerUsers() []map[string]interface{} {
 	allQuery := `
@@ -108,7 +156,7 @@ func AllServerUsers() []map[string]interface{} {
 		aData["user_keepalive"] = userKeepalive
 		allData = append(allData, aData)
 	}
-	return allDataGroupByServer(allData)
+	return dataGroupByServer(allData)
 }
 
 func AllRules() []map[string]interface{} {
@@ -237,5 +285,5 @@ func AllNodes() []map[string]interface{} {
 			"keepalive":    nodeKeepalive,
 		})
 	}
-	return allNodes
+	return nodesGroupByServer(allNodes)
 }
