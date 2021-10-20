@@ -31,11 +31,14 @@ func CreateUser(user models.Users) statusCode {
 
 	userServerID := user.ServerID
 	userUsername := user.Username
+	userIsServer := user.IsServer
 
 	userID := GetUserID(userUsername)
 
-	if GetPeerID(userServerID) != 0 {
-		return UserCenterExist
+	if userIsServer == 1 {
+		if GetPeerID(userServerID) != 0 {
+			return UserCenterExist
+		}
 	}
 
 	if UserCheck(userServerID, userID) != 0 {
@@ -70,7 +73,6 @@ func CreateUser(user models.Users) statusCode {
 		userDefaultRule := fmt.Sprintf("%s/%s", userIP, "32")
 		userIsAccess := user.IsAccess
 		userIsExtra := user.IsExtra
-		userIsServer := user.IsServer
 		userKeepalive := user.PersistentKeepalive
 
 		sqlInsert := fmt.Sprintf("INSERT INTO %s (created_at,updated_at,server_id,username,prikey,pubkey,ip,default_rule,is_access,is_extra,is_server,keepalive) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", models.UsersTable)
