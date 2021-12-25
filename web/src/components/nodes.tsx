@@ -247,16 +247,9 @@ export default function Clients() {
       .then(response => {
         const status: number = response.status
         if (status === 1) {
-          let lastClientData: any = []
-          for (let i in clientData) {
-            let cData: any = clientData[i]
-            if (cData["id"] !== client_id) {
-              lastClientData.push(cData)
-            }
-          }
           DefaultMsgOption.variant = "success"
           enqueueSnackbar("删除成功", DefaultMsgOption)
-          setClientData(lastClientData)
+          LoadClients()
         } else {
           DefaultMsgOption.variant = "error"
           enqueueSnackbar(response.message, DefaultMsgOption)
@@ -497,7 +490,7 @@ export default function Clients() {
 
       {clientData.map((node: any, index: number) => {
         return (
-          <Container sx={{ padding: 1 }}>
+          <Container sx={{ padding: 1 }} key={"node-" + index}>
             <Typography variant="h5" sx={{ p: 1 }}>{node.server_title}</Typography>
             <TableContainer component={Paper}>
               <Table>
@@ -540,16 +533,16 @@ export default function Clients() {
                             <Button
                               size='small'
                               disabled={data.is_extra === 0}
-                              onClick={() => ClientEditOn(data.server_id, data.id)}
+                              onClick={() => ClientEditOn(node.server_id, data.id)}
                             >路由</Button>
                             <Button
                               size='small'
-                              onClick={() => ClientKeyUpdateOn(data.server_id, data.id, data.username)}
+                              onClick={() => ClientKeyUpdateOn(node.server_id, data.id, data.username)}
                             >更新</Button>
                             <Button
                               size='small'
                               color='error'
-                              onClick={() => ClientDel(data.server_id, data.id)}
+                              onClick={() => ClientDel(node.server_id, data.id)}
                             >删除</Button>
                           </ButtonGroup>
                         </TableCell>
