@@ -96,6 +96,7 @@ func Run() {
 	router.Use(assets.StaticHand())
 	router.Use(gin.Recovery())
 	router.Use(Logger())
+	router.SetTrustedProxies(nil)
 
 	v1 := router.Group("/api/v1")
 	{

@@ -23,11 +23,11 @@ func Output(otype string, data []map[string]string) {
 		headers = []string{"ID", "AllowedIP"}
 	}
 
-	tb, _ := gotable.CreateTable(headers)
+	tb, _ := gotable.Create(headers...)
 	for _, d := range data {
-		tb.AddValue(d)
+		tb.AddRow(d)
 	}
-	tb.PrintTable()
+	fmt.Println(tb)
 }
 
 func ShowUserList(serverID int, plain bool) {
