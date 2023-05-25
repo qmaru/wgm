@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"wgm/models"
+	"wgm/cmd/apis"
+	"wgm/cmd/dbs"
+	"wgm/cmd/web"
 
 	"github.com/spf13/cobra"
 )
@@ -13,27 +15,16 @@ var (
 	rootCmd = &cobra.Command{
 		Use:     "wgm",
 		Short:   "wgm is a simple Wireguard VPN management tool",
-		Version: "1.2-20220107",
-		Run: func(cmd *cobra.Command, args []string) {
-			if models.TableCheck() {
-				cmd.Help()
-			} else {
-				fmt.Println("Please use [wgm init] to init database.")
-			}
-		},
+		Version: "2.0-20230525",
 	}
 )
 
 func Execute() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.AddCommand(
-		apiCmd,
-		dbCmd,
-		serverCmd,
-		userCmd,
-		ruleCmd,
-		rulemapCmd,
-		showCmd,
-		mgrCmd,
+		apis.ApiCmd,
+		dbs.DBCmd,
+		web.WebCmd,
 	)
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

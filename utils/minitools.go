@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/aobeom/minitools"
+	"github.com/qmaru/minitools"
 )
 
 // AESSuite 初始化

@@ -1,66 +1,61 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import { blue } from '@mui/material/colors'
 import { SnackbarProvider } from 'notistack'
 
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
-import Box from '@mui/material/Box'
+import Container from '@mui/material/Container'
 
-import Servers from './components/servers'
-import Nodes from './components/nodes'
-import Rules from './components/rules'
-import Summary from './components/summary'
+import Peers from './components/Peers'
+import Routes from './components/Routes'
+import Users from './components/Users'
 
-const myTheme = createTheme({
-  palette: {
-    primary: {
-      main: blue[800],
-    },
-  },
-})
-
-export const DefaultMsgOption: any = {
-  autoHideDuration: 1000,
-  anchorOrigin: {
-    vertical: 'top',
-    horizontal: 'center',
-  }
-}
+import "./global"
 
 export default function App() {
+  var GlobalTheme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          primary: {
+            main: blue[800],
+          },
+        },
+      }),
+    [],
+  )
+
   const [tabIndex, setTabIndex] = useState(0)
-  const switchTab = (event: React.SyntheticEvent, newValue: number) => {
+  const switchTab = (event: any, newValue: number) => {
     setTabIndex(newValue)
   }
 
   const tabList: any = [
-    { label: "总览", comp: <Summary /> },
-    { label: "节点", comp: <Nodes /> },
-    { label: "服务器", comp: <Servers /> },
-    { label: "规则", comp: <Rules /> },
+    { label: "节点", comp: <Peers /> },
+    { label: "用户", comp: <Users /> },
+    { label: "路由", comp: <Routes /> },
   ]
 
   return (
-    <ThemeProvider theme={myTheme}>
-      <SnackbarProvider maxSnack={3}>
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <ThemeProvider theme={GlobalTheme}>
+      <SnackbarProvider maxSnack={3} dense>
+        <Container disableGutters>
+          <Container sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={tabIndex} onChange={switchTab} centered>
               {tabList.map((data: any, index: number) => {
                 return (
                   <Tab
-                    key={"simple-tab-" + index}
-                    id={"simple-tab-" + index}
+                    key={"tab-" + index}
                     label={data.label}
-                    aria-controls={"simple-tabpanel-" + index}
                   />
                 )
               })}
             </Tabs>
-          </Box>
+          </Container >
           {tabList[tabIndex].comp}
-        </Box>
+        </Container>
       </SnackbarProvider>
     </ThemeProvider>
   )
