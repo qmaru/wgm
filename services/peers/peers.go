@@ -121,7 +121,7 @@ func PeerAdd(peerData *models.Peers) error {
 			keepalive = 25
 		}
 		if allowedIPs == "" {
-			allowedIPs = priAddr + "/24"
+			allowedIPs = priAddr + "/32"
 		}
 		createdAt := time.Now().Unix()
 		updatedAt := createdAt
