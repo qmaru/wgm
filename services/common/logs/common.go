@@ -38,7 +38,7 @@ func Logger(logName string) (*logrus.Logger, error) {
 			return nil, err
 		}
 		accessPath := filepath.Join(logpath, logName)
-		accessFile, err := os.OpenFile(accessPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModeAppend)
+		accessFile, err := os.OpenFile(accessPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
 		if err != nil {
 			return nil, err
 		}
