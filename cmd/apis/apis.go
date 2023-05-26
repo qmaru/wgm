@@ -23,5 +23,5 @@ var (
 )
 
 func init() {
-	ApiCmd.Flags().StringVarP(&listenAddr, "listen", "l", "127.0.0.1:30000", "Listen address [host:port]")
+	ApiCmd.Flags().StringVarP(&listenAddr, "listen", "l", "127.0.0.1:8373", "Listen address [host:port]")
 }

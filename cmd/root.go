@@ -7,6 +7,7 @@ import (
 	"wgm/cmd/apis"
 	"wgm/cmd/dbs"
 	"wgm/cmd/web"
+	"wgm/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -15,7 +16,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:     "wgm",
 		Short:   "wgm is a simple Wireguard VPN management tool",
-		Version: "2.0-20230525",
+		Version: utils.BackendVersion,
 	}
 )
 

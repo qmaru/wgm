@@ -10,8 +10,8 @@ import (
 func ListPeerData(c *gin.Context) {
 	data, err := data.PeerData()
 	if err != nil {
-		common.JSONHandler(c, 0, "List Peer data failed", []any{})
+		common.JSONHandler(c, 0, "节点详情获取失败: "+err.Error(), []any{})
 		return
 	}
-	common.JSONHandler(c, 1, "List Peer data succeed", data)
+	common.JSONHandler(c, 1, "节点详情", data)
 }

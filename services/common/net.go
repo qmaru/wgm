@@ -48,7 +48,6 @@ func CIDRValidator(cidr string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	ipNet.IP[len(ipNet.IP)-1] = 0
 	return ipNet.String(), nil
 }
 

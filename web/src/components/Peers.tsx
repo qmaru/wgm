@@ -2,224 +2,430 @@ import { useState, useEffect, useCallback } from 'react'
 
 import Container from '@mui/material/Container'
 import Box from '@mui/material/Box'
-import Stepper from '@mui/material/Stepper'
-import Step from '@mui/material/Step'
-import StepLabel from '@mui/material/StepLabel'
 import Button from '@mui/material/Button'
-import Typography from '@mui/material/Typography'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
-import FormGroup from '@mui/material/FormGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import FormControl from '@mui/material/FormControl'
-import FormLabel from '@mui/material/FormLabel'
-import Checkbox from '@mui/material/Checkbox'
+import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
-import Select from '@mui/material/Select'
-import Chip from '@mui/material/Chip'
-import MenuItem from '@mui/material/MenuItem'
-import OutlinedInput from '@mui/material/OutlinedInput'
+import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions'
+import CardContent from '@mui/material/CardContent'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
 import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import FormControl from '@mui/material/FormControl'
+import Tooltip from '@mui/material/Tooltip'
+import Chip from '@mui/material/Chip'
+import Select from '@mui/material/Select'
 
 import { useSnackbar } from 'notistack'
 
 export default function Peers() {
   const { enqueueSnackbar } = useSnackbar()
+  const [manualRender, setManualRender] = useState<boolean>(false)
 
-  const [activeStep, setActiveStep] = useState(0)
+  const [userData, setUserData] = useState<any>([])
   const [peerData, setPeerData] = useState<any>([])
-  const [routeData, setRouteData] = useState<any>([])
-  const [interfaceNode, setInterfaceNode] = useState<string>("")
-  const [peerNodes, setPeerNodes] = useState<any>([])
-  const [routeNodes, setRouteNodes] = useState<any>([])
 
-  const InterfaceNodeChange = (event: any) => {
-    setInterfaceNode(event.target.value)
+  const [peerAddOpen, setPeerAddOpen] = useState<boolean>(false)
+  const [peerAddUser, setPeerAddUser] = useState<string>("")
+  const [peerAddPublic, setPeerAddPublic] = useState<string>("")
+  const [peerAddPrivate, setPeerAddPrivate] = useState<string>("")
+  const [peerAddPort, setPeerAddPort] = useState<number>(0)
+  const [peerAddAllowedIP, setPeerAddAllowedIP] = useState<string>("")
+  const [peerAddMtu, setPeerAddMtu] = useState<number>(0)
+  const [peerAddDns, setPeerAddDns] = useState<string>("")
+  const [peerAddKeepalive, setPeerAddKeepalive] = useState<number>(0)
+
+  const [peerUpdateOpen, setPeerUpdateOpen] = useState<boolean>(false)
+  const [peerUpdateID, setPeerUpdateID] = useState<number>(0)
+  const [peerUpdateUser, setPeerUpdateUser] = useState<string>("")
+  const [peerUpdatePublic, setPeerUpdatePublic] = useState<string>("")
+  const [peerUpdatePrivate, setPeerUpdatePrivate] = useState<string>("")
+  const [peerUpdatePort, setPeerUpdatePort] = useState<number>(0)
+  const [peerUpdateAllowedIP, setPeerUpdateAllowedIP] = useState<string>("")
+  const [peerUpdateMtu, setPeerUpdateMtu] = useState<number>(0)
+  const [peerUpdateDns, setPeerUpdateDns] = useState<string>("")
+  const [peerUpdateKeepalive, setPeerUpdateKeepalive] = useState<number>(0)
+
+  const [peerDeleteOpen, setPeerDeleteOpen] = useState<boolean>(false)
+  const [peerDeleteID, setPeerDeleteID] = useState<number>(0)
+
+
+  const PeerAddOpen = () => {
+    setPeerAddUser("")
+    setPeerAddPublic("")
+    setPeerAddPrivate("")
+    setPeerAddPort(0)
+    setPeerAddAllowedIP("")
+    setPeerAddMtu(0)
+    setPeerAddDns("")
+    setPeerAddKeepalive(0)
+    setPeerAddOpen(true)
   }
 
-  const PeerNodesChange = (event: any) => {
-    setPeerNodes({ ...peerNodes, [event.target.name]: event.target.checked })
+  const PeerAddClose = () => {
+    setPeerAddOpen(false)
   }
 
-  const RouteNodesChange = (event: any, selectId: number) => {
-    const value = event.target.value
-    setRouteNodes((prevValues: any) => ({
-      ...prevValues,
-      [selectId]: value,
-    }))
+  const PeerUpdateOpen = (peer_data: any) => {
+    setPeerUpdateID(peer_data.id)
+    setPeerUpdateUser(peer_data.username)
+    setPeerUpdatePublic(peer_data.public_addr)
+    setPeerUpdatePrivate(peer_data.private_addr)
+    setPeerUpdatePort(peer_data.port)
+    setPeerUpdateAllowedIP(peer_data.allowed_ips)
+    setPeerUpdateMtu(peer_data.mtu)
+    setPeerUpdateDns(peer_data.dns)
+    setPeerUpdateKeepalive(peer_data.keepalive)
+    setPeerUpdateOpen(true)
   }
 
-  const steps = [
-    "选择 Interface",
-    "选择 Peers",
-    "确认配置"
-  ]
+  const PeerUpdateClose = () => {
+    setPeerUpdateOpen(false)
+  }
 
-  const StepNext = () => {
-    if (activeStep === 0 && interfaceNode === "") {
+  const PeerDeleteOpen = (peer_data: any) => {
+    setPeerDeleteID(peer_data.id)
+    setPeerDeleteOpen(true)
+  }
+
+  const PeerDeleteClose = () => {
+    setPeerDeleteOpen(false)
+  }
+
+  const PeerAddUserChange = (event: any) => {
+    setPeerAddUser(event.target.value)
+  }
+
+  const PeerAddPublicChange = (event: any) => {
+    setPeerAddPublic(event.target.value)
+  }
+
+  const PeerAddPrivateChange = (event: any) => {
+    setPeerAddPrivate(event.target.value)
+  }
+
+  const PeerAddPortChange = (event: any) => {
+    setPeerAddPort(event.target.value)
+  }
+
+  const PeerAddAllowedIPChange = (event: any) => {
+    setPeerAddAllowedIP(event.target.value)
+  }
+
+  const PeerAddMtuChange = (event: any) => {
+    setPeerAddMtu(event.target.value)
+  }
+
+  const PeerAddDnsChange = (event: any) => {
+    setPeerAddDns(event.target.value)
+  }
+
+  const PeerAddKeepaliveChange = (event: any) => {
+    setPeerAddKeepalive(event.target.value)
+  }
+
+  const PeerUpdatePublicChange = (event: any) => {
+    setPeerUpdatePublic(event.target.value)
+  }
+
+  const PeerUpdatePrivateChange = (event: any) => {
+    setPeerUpdatePrivate(event.target.value)
+  }
+
+  const PeerUpdatePortChange = (event: any) => {
+    setPeerUpdatePort(event.target.value)
+  }
+
+  const PeerUpdateAllowedIPChange = (event: any) => {
+    setPeerUpdateAllowedIP(event.target.value)
+  }
+
+  const PeerUpdateMtuChange = (event: any) => {
+    setPeerUpdateMtu(event.target.value)
+  }
+
+  const PeerUpdateDnsChange = (event: any) => {
+    setPeerUpdateDns(event.target.value)
+  }
+
+  const PeerUpdateKeepaliveChange = (event: any) => {
+    setPeerUpdateKeepalive(event.target.value)
+  }
+
+  const PeerAdd = () => {
+    if (peerAddUser === "") {
       window.messageDefault.variant = "warning"
       enqueueSnackbar(
-        "请选择 Interface",
+        "请选择用户",
         window.messageDefault
       )
-      return
-    } else if (activeStep === 1 && peerNodes.length === 0) {
+      return false
+    }
+
+    var regex = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+    if (peerAddPrivate === "") {
       window.messageDefault.variant = "warning"
       enqueueSnackbar(
-        "请选择 Peers",
+        "请输入内网地址",
         window.messageDefault
       )
-      return
+      return false
+    } else if (!regex.test(peerAddPrivate)) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的IP地址",
+        window.messageDefault
+      )
+      return false
     }
-    setActiveStep((prevActiveStep) => prevActiveStep + 1)
-  }
 
-  const StepBack = () => {
-    if (activeStep === 1) {
-      setInterfaceNode("")
-    } else if (activeStep === 2) {
-      setPeerNodes([])
-      setRouteNodes([])
+    if (peerAddPublic !== "" && peerAddPort === 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入公网地址和端口",
+        window.messageDefault
+      )
+      return false
     }
-    setActiveStep((prevActiveStep) => prevActiveStep - 1)
-  }
 
-  const StepReset = () => {
-    setActiveStep(0)
-    setInterfaceNode("")
-    setPeerNodes([])
-    setRouteNodes([])
-  }
-
-  const StepCopy = () => {
-    alert("复制了一些配置")
-  }
-
-  const InterfaceOption = (peer: any) => {
-    const username = peer.username
-    const private_addr = peer.private_addr
-    const public_addr = peer.public_addr
-    const port = peer.port
-    let public_info = ""
-    if (public_addr !== "") {
-      public_info = ` | ${public_addr}:${port}`
+    if (peerAddPublic === "" && peerAddPort !== 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入公网地址和端口",
+        window.messageDefault
+      )
+      return false
     }
-    const option = `${username} | ${private_addr}${public_info}`
-    return option
-  }
 
-  const ConfigOut = () => {
-    let configInterface: any = {}
-    let configPeers: any = []
-    for (let i in peerData) {
-      let pData = peerData[i]
-      if (pData.id.toString() === interfaceNode) {
-        configInterface = pData
+    if (peerAddPort > 65535 || peerAddPort < 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的端口",
+        window.messageDefault
+      )
+      return false
+    }
+
+    if (peerAddMtu !== 0) {
+      if (peerAddMtu > 1518 || peerAddMtu < 64) {
+        window.messageDefault.variant = "warning"
+        enqueueSnackbar(
+          "请输入正确的MTU",
+          window.messageDefault
+        )
+        return false
       }
     }
 
-    let peerNodesTrue: any = []
-    for (let i in peerNodes) {
-      if (peerNodes[i]) {
-        peerNodesTrue.push(i)
-      }
+    if (peerAddKeepalive < 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的Keepalive",
+        window.messageDefault
+      )
+      return false
     }
 
-    for (let i in peerData) {
-      let pData = peerData[i]
-      if (peerNodesTrue.includes(pData.id.toString())) {
-        configPeers.push(pData)
-      }
+    let body: any = {
+      "user_id": peerAddUser,
+      "public_addr": peerAddPublic,
+      "private_addr": peerAddPrivate,
+      "port": Number(peerAddPort),
+      "allowed_ips": peerAddAllowedIP,
+      "mtu": Number(peerAddMtu),
+      "dns": peerAddDns,
+      "keepalive": Number(peerAddKeepalive)
     }
 
-    let interface_port = ""
-    let interface_mtu = ""
-    let interface_dns = ""
-
-    if (configInterface.port !== 0) {
-      interface_port = `ListenPort =  ${configInterface.port}`
-    }
-
-    if (configInterface.mtu !== 0) {
-      interface_mtu = `MTU = ${configInterface.mtu}`
-    }
-
-    if (configInterface.dns !== "") {
-      interface_dns = `DNS = ${configInterface.dns}`
-    }
-
-    const interface_section = "[Interface]"
-    const interface_remark = `# ${configInterface.username}`
-    const interface_private_key = `PrivateKey = ${configInterface.prikey}`
-    const interface_address = `Address = ${configInterface.private_addr}/24`
-
-    const interface_config = [
-      interface_section,
-      interface_remark,
-      interface_private_key,
-      interface_address,
-      interface_port,
-      interface_mtu,
-      interface_dns
-    ]
-
-    let peer_configs = []
-    for (let i in configPeers) {
-      let peer_tmp = []
-      const pData = configPeers[i]
-      const peer_id = pData.id.toString()
-      const allowed_ips = pData.allowed_ips
-      let extar_ips = [allowed_ips]
-      if (Object.keys(routeNodes).includes(peer_id)) {
-        extar_ips.push(...routeNodes[peer_id])
-      }
-      const peer_section = "[Peer]"
-      const peer_remark = `# ${pData.username}`
-      const peer_public_key = `PublicKey = ${pData.pubkey}`
-      const peer_allowed_ips = `AllowedIPs = ${extar_ips.toString()}`
-      let peer_endpoint = ""
-      let peer_keepalive = ""
-      if (pData.public_addr !== "") {
-        peer_endpoint = `Endpoint = ${pData.public_addr}:${pData.port}`
-      }
-      if (pData.port !== 0) {
-        peer_keepalive = `PersistentKeepalive = ${pData.keepalive}`
-      }
-      peer_tmp.push(peer_section)
-      peer_tmp.push(peer_remark)
-      peer_tmp.push(peer_public_key)
-      peer_tmp.push(peer_allowed_ips)
-      peer_tmp.push(peer_endpoint)
-      peer_tmp.push(peer_keepalive)
-      peer_configs.push(peer_tmp)
-    }
-
-    return (
-      <Box>
-        {interface_config.map((inter_c: any, index: number) => {
-          return (
-            <Typography key={"inter" + index}>{inter_c}</Typography>
+    const url = `${window.api}/peer/add`
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          setManualRender(!manualRender)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(
+            "节点添加成功",
+            window.messageDefault
           )
-        })}
-        <Box m={2} />
-        {peer_configs.map((peer_config: any, index: number) => {
-          return (
-            <Box key={"peer_g" + index}>
-              {peer_config.map((peer: any, index: number) => {
-                return (
-                  <Typography key={"peer" + index}>{peer}</Typography>
-                )
-              })}
-              <Box m={2} />
-            </Box>
+          setPeerAddOpen(false)
+        } else {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
           )
-        })}
-      </Box>
-    )
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "节点数据增加失败",
+            window.messageDefault
+          )
+        }
+      )
   }
 
-  const PeerDataList = useCallback(() => {
-    const url = `${window.api}/data`
+  const PeerUpdate = () => {
+    var regex = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+    if (peerUpdatePrivate === "") {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入内网地址",
+        window.messageDefault
+      )
+      return false
+    } else if (!regex.test(peerUpdatePrivate)) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的IP地址",
+        window.messageDefault
+      )
+      return false
+    }
+
+    if (peerUpdatePublic !== "" && peerUpdatePort === 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入公网地址和端口",
+        window.messageDefault
+      )
+      return false
+    }
+
+    if (peerUpdatePublic === "" && peerUpdatePort !== 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入公网地址和端口",
+        window.messageDefault
+      )
+      return false
+    }
+
+    if (peerUpdatePort > 65535 || peerUpdatePort < 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的端口",
+        window.messageDefault
+      )
+      return false
+    }
+
+    if (peerUpdateMtu !== 0) {
+      if (peerUpdateMtu > 1518 || peerUpdateMtu < 64) {
+        window.messageDefault.variant = "warning"
+        enqueueSnackbar(
+          "请输入正确的MTU",
+          window.messageDefault
+        )
+        return false
+      }
+    }
+
+    if (peerUpdateKeepalive < 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请输入正确的Keepalive",
+        window.messageDefault
+      )
+      return false
+    }
+
+    let body: any = {
+      "public_addr": peerUpdatePublic,
+      "private_addr": peerUpdatePrivate,
+      "port": Number(peerUpdatePort),
+      "allowed_ips": peerUpdateAllowedIP,
+      "mtu": Number(peerUpdateMtu),
+      "dns": peerUpdateDns,
+      "keepalive": Number(peerUpdateKeepalive)
+    }
+
+    const url = `${window.api}/peer/update/` + peerUpdateID
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          setManualRender(!manualRender)
+          setPeerUpdateOpen(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(
+            "节点修改成功",
+            window.messageDefault
+          )
+        } else {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "节点数据载入失败",
+            window.messageDefault
+          )
+        }
+      )
+  }
+
+  const PeerDelete = () => {
+    const url = `${window.api}/peer/delete/` + peerDeleteID
+    fetch(url, {
+      method: "POST",
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          setManualRender(!manualRender)
+          setPeerDeleteOpen(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        } else {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "路由数据载入失败",
+            window.messageDefault
+          )
+        }
+      )
+  }
+
+  const PeerList = useCallback(() => {
+    const url = `${window.api}/peer/list`
     fetch(url, {
       method: "GET",
     }).then(res => res.json())
@@ -227,8 +433,30 @@ export default function Peers() {
         let status = response.status
         if (status === 1) {
           let data = response.data
-          setRouteData(data.routes)
-          setPeerData(data.peers)
+          setPeerData(data)
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "节点数据载入失败",
+            window.messageDefault
+          )
+        }
+      )
+  }, [enqueueSnackbar])
+
+  const UserList = useCallback(() => {
+    const url = `${window.api}/user/list`
+    fetch(url, {
+      method: "GET",
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          let data = response.data
+          setUserData(data)
         }
       })
       .catch(
@@ -243,138 +471,239 @@ export default function Peers() {
   }, [enqueueSnackbar])
 
   useEffect(() => {
-    PeerDataList()
-  }, [PeerDataList])
+    PeerList()
+  }, [PeerList, manualRender])
+
+  useEffect(() => {
+    UserList()
+  }, [UserList])
 
   return (
-    <Container key={"Peers-Main"}>
-
-      <Container key={"Peers-Stepper"}
-        sx={{ padding: 4 }}
+    <Container key="Peer-Main">
+      <Container key="Peer-Control"
+        sx={{
+          padding: 4,
+          display: 'flex',
+          justifyContent: 'center',
+        }}
       >
-        <Stepper activeStep={activeStep}>
-          {steps.map((step: any, index: number) => {
-            return (
-              <Step key={"step" + index} >
-                <StepLabel>{step}</StepLabel>
-              </Step>
-            )
-          })}
-        </Stepper>
+        <Button variant="contained" onClick={PeerAddOpen}>增加节点</Button>
       </Container>
 
-      <Container key={"Peers-Step-Main"}>
-        {activeStep === steps.length ?
-          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            <Button
-              color="error"
-              variant="contained"
-              onClick={StepReset}>
-              重置
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button
-              color="success"
-              variant="contained"
-              onClick={StepCopy}>
-              复制
-            </Button>
-          </Box>
-          :
-          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            <Button
-              variant="contained"
-              disabled={activeStep === 0}
-              onClick={StepBack}
-            >
-              上一步
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button
-              variant="contained"
-              onClick={StepNext}
-            >
-              {activeStep === steps.length - 1 ? '完成' : '下一步'}
-            </Button>
-          </Box>
-        }
-        <Box sx={{ padding: 4 }}>
-          {activeStep === 0 ?
-            <FormControl>
-              <FormLabel>选择一个接口</FormLabel>
-              <RadioGroup
-                value={interfaceNode}
-                onChange={InterfaceNodeChange}
+      <Container key="Peer-List">
+        <Stack
+          spacing={{ xs: 2, sm: 2 }}
+          direction="row"
+          justifyContent="flex-start"
+          useFlexGap
+          flexWrap="wrap"
+        >
+          {peerData.map((data: any, index: number) => (
+            <Box key={"peer" + index} sx={{ minWidth: 250 }}>
+              <Card>
+                <CardContent>
+                  {data.public_addr !== "" ?
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary">
+                      {data.public_addr}:{data.port}
+                    </Typography> :
+                    <Typography sx={{ fontSize: 14 }} color="text.secondary">
+                      未设置公网
+                    </Typography>
+                  }
+                  <Typography variant="h6">
+                    {data.username}
+                  </Typography>
+                  <Typography color="text.secondary">
+                    {data.private_addr}
+                  </Typography>
+                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
+                    {data.allowed_ips}
+                  </Typography>
+                  <Stack direction="row" spacing={1}>
+                    <Tooltip title={data.dns === "" ? "未设置DNS" : data.dns} placement="top">
+                      <Chip label="dns" />
+                    </Tooltip>
+                    <Tooltip title={data.mtu === 0 ? "未设置MTU" : data.mtu} placement="top">
+                      <Chip label="mtu" />
+                    </Tooltip>
+                    <Tooltip title={data.keepalive} placement="top">
+                      <Chip label="Keepalive" />
+                    </Tooltip>
+                  </Stack>
+                </CardContent>
+                <CardActions>
+                  <Button onClick={() => PeerUpdateOpen(data)}>修改</Button>
+                  <Button onClick={() => PeerDeleteOpen(data)} color="error" >删除</Button>
+                </CardActions>
+              </Card>
+            </Box>
+          ))}
+        </Stack>
+      </Container>
+
+      <Dialog open={peerAddOpen} onClose={PeerAddClose}>
+        <DialogTitle>节点信息</DialogTitle>
+        <DialogContent>
+          <Stack
+            sx={{ padding: 2 }}
+            spacing={{ xs: 2, sm: 2 }}
+            direction="row"
+            justifyContent="center"
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <FormControl sx={{ width: 220 }}>
+              <InputLabel>用户名</InputLabel>
+              <Select
+                value={peerAddUser}
+                label="用户名"
+                onChange={PeerAddUserChange}
               >
-                {peerData.map((peer: any, index: number) => {
+                {userData.map((user: any, index: number) => {
                   return (
-                    <FormControlLabel
-                      key={"interface" + index}
-                      value={peer.id}
-                      control={<Radio color={peer.public_addr === "" ? "primary" : "secondary"} />}
-                      label={InterfaceOption(peer)}
-                    />
+                    <MenuItem key={"user" + index} value={user.id}>{user.username}</MenuItem>
                   )
                 })}
-              </RadioGroup>
+              </Select>
             </FormControl>
-            : activeStep === 1 ?
-              <FormGroup>
-                <FormLabel>选择节点</FormLabel>
-                <Stack>
-                  {peerData.map((peer: any, index: number) => {
-                    return (
-                      <Stack key={"peer" + index}>
-                        <Box>
-                          <FormControlLabel
-                            label={InterfaceOption(peer)}
-                            control={
-                              <Checkbox
-                                name={peer.id.toString()}
-                                color={peer.public_addr === "" ? "primary" : "secondary"}
-                                onChange={PeerNodesChange}
-                              />
-                            }
-                          />
-                        </Box>
+            <TextField
+              required
+              label="内网地址"
+              variant="outlined"
+              value={peerAddPrivate}
+              onChange={(event) => PeerAddPrivateChange(event)}
+            />
+            <TextField
+              label="公网地址"
+              variant="outlined"
+              value={peerAddPublic}
+              onChange={(event) => PeerAddPublicChange(event)}
+            />
+            <TextField
+              label="监听端口"
+              variant="outlined"
+              type="number"
+              value={peerAddPort}
+              onChange={(event) => PeerAddPortChange(event)}
+            />
+            <TextField
+              label="默认路由"
+              variant="outlined"
+              value={peerAddAllowedIP}
+              onChange={(event) => PeerAddAllowedIPChange(event)}
+            />
+            <TextField
+              label="MTU"
+              variant="outlined"
+              type="number"
+              value={peerAddMtu}
+              onChange={(event) => PeerAddMtuChange(event)}
+            />
+            <TextField
+              label="DNS"
+              variant="outlined"
+              value={peerAddDns}
+              onChange={(event) => PeerAddDnsChange(event)}
+            />
+            <TextField
+              label="Keepalive"
+              variant="outlined"
+              type="number"
+              value={peerAddKeepalive}
+              onChange={(event) => PeerAddKeepaliveChange(event)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={PeerAddClose}>取消</Button>
+          <Button onClick={() => PeerAdd()}>提交</Button>
+        </DialogActions>
+      </Dialog>
 
-                        <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
-                          <FormControl sx={{ width: "50%" }}>
-                            <InputLabel>路由</InputLabel>
-                            <Select
-                              multiple
-                              value={routeNodes[peer.id.toString()] || []}
-                              onChange={(event) => RouteNodesChange(event, peer.id.toString())}
-                              input={<OutlinedInput label="Chip" />}
-                              renderValue={(selected) => (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                  {selected.map((value: any) => (
-                                    <Chip key={value} label={value} />
-                                  ))}
-                                </Box>
-                              )}
-                            >
-                              {routeData.map((route: any) => (
-                                <MenuItem
-                                  key={"route" + route.id}
-                                  value={route.cidr}
-                                >
-                                  {route.cidr}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                    )
-                  })}
-                </Stack>
-              </FormGroup>
-              :
-              <ConfigOut />
-          }
-        </Box>
-      </Container>
+
+      <Dialog open={peerUpdateOpen} onClose={PeerUpdateClose}>
+        <DialogTitle>节点修改</DialogTitle>
+        <DialogContent>
+          <Stack
+            sx={{ padding: 2 }}
+            spacing={{ xs: 2, sm: 2 }}
+            direction="row"
+            justifyContent="center"
+            useFlexGap
+            flexWrap="wrap"
+          >
+            <FormControl sx={{ width: 220 }} disabled>
+              <InputLabel>用户名</InputLabel>
+              <Select
+                value={peerUpdateUser}
+                label="用户名"
+              >
+                <MenuItem value={peerUpdateUser}>{peerUpdateUser}</MenuItem>
+              </Select>
+            </FormControl>
+            <TextField
+              required
+              label="内网地址"
+              variant="outlined"
+              value={peerUpdatePrivate}
+              onChange={(event) => PeerUpdatePrivateChange(event)}
+            />
+            <TextField
+              label="公网地址"
+              variant="outlined"
+              value={peerUpdatePublic}
+              onChange={(event) => PeerUpdatePublicChange(event)}
+            />
+            <TextField
+              label="监听端口"
+              variant="outlined"
+              type="number"
+              value={peerUpdatePort}
+              onChange={(event) => PeerUpdatePortChange(event)}
+            />
+            <TextField
+              label="默认路由"
+              variant="outlined"
+              value={peerUpdateAllowedIP}
+              onChange={(event) => PeerUpdateAllowedIPChange(event)}
+            />
+            <TextField
+              label="MTU"
+              variant="outlined"
+              type="number"
+              value={peerUpdateMtu}
+              onChange={(event) => PeerUpdateMtuChange(event)}
+            />
+            <TextField
+              label="DNS"
+              variant="outlined"
+              value={peerUpdateDns}
+              onChange={(event) => PeerUpdateDnsChange(event)}
+            />
+            <TextField
+              label="Keepalive"
+              variant="outlined"
+              type="number"
+              value={peerUpdateKeepalive}
+              onChange={(event) => PeerUpdateKeepaliveChange(event)}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={PeerUpdateClose}>取消</Button>
+          <Button onClick={() => PeerUpdate()}>提交</Button>
+        </DialogActions>
+      </Dialog>
+
+
+      <Dialog open={peerDeleteOpen} onClose={PeerDeleteClose}>
+        <DialogTitle>确认删除节点</DialogTitle>
+        <DialogActions>
+          <Button onClick={PeerDeleteClose}>取消</Button>
+          <Button onClick={() => PeerDelete()}>提交</Button>
+        </DialogActions>
+      </Dialog>
+
     </Container>
   )
 }

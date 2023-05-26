@@ -1,37 +1,68 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import Container from '@mui/material/Container'
+import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import Typography from '@mui/material/Typography'
+import Card from '@mui/material/Card'
+import CardActions from '@mui/material/CardActions'
+import CardContent from '@mui/material/CardContent'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogTitle from '@mui/material/DialogTitle'
+import Tooltip from '@mui/material/Tooltip'
 
 import { useSnackbar } from 'notistack'
 
 export default function Users() {
   const { enqueueSnackbar } = useSnackbar()
-  const [username, setUsername] = useState<string>("")
-  const [userData, setUserData] = useState<any>([])
-  const [showKey, setShowKey] = useState<boolean>(false)
   const [manualRender, setManualRender] = useState<boolean>(false)
 
-  const UsernameChange = (event: any) => {
-    setUsername(event.target.value)
+  const [userData, setUserData] = useState<any>([])
+
+  const [userAddUsername, setUserAddUsername] = useState<string>("")
+
+  const [userUpdateOpen, setUserUpdateOepn] = useState<boolean>(false)
+  const [userUpdateID, setUserUpdateID] = useState<number>(0)
+  const [userUpdateUsername, setUserUpdateUsername] = useState<string>("")
+
+  const [userDeleteOpen, setUserDeleteOepn] = useState<boolean>(false)
+  const [userDeleteID, setUserDeleteID] = useState<number>(0)
+
+
+  const UserAddUsernameChange = (event: any) => {
+    setUserAddUsername(event.target.value)
   }
 
-  const ShowSecret = () => {
-    setShowKey(!showKey)
+  const UserUpdateOpen = (user_data: any) => {
+    setUserUpdateOepn(true)
+    setUserUpdateID(user_data.id)
+    setUserUpdateUsername(user_data.username)
+  }
+
+  const UserUpdateClose = () => {
+    setUserUpdateOepn(false)
+  }
+
+  const UserDeleteOpen = (user_data: any) => {
+    setUserDeleteOepn(true)
+    setUserDeleteID(user_data.id)
+  }
+
+  const UserDeleteClose = () => {
+    setUserDeleteOepn(false)
+  }
+
+  const UserUpdateUsernameChange = (event: any) => {
+    setUserUpdateUsername(event.target.value)
   }
 
   const UserAdd = () => {
     let body: any = {
-      "username": username
+      "username": userAddUsername
     }
     const url = `${window.api}/user/add`
     fetch(url, {
@@ -47,10 +78,10 @@ export default function Users() {
           setManualRender(!manualRender)
           window.messageDefault.variant = "success"
           enqueueSnackbar(
-            "用户添加成功",
+            response.message,
             window.messageDefault
           )
-          setUsername("")
+          setUserAddUsername("")
         } else {
           window.messageDefault.variant = "error"
           enqueueSnackbar(
@@ -63,7 +94,82 @@ export default function Users() {
         () => {
           window.messageDefault.variant = "error"
           enqueueSnackbar(
-            "用户数据载入失败",
+            "用户接口请求失败",
+            window.messageDefault
+          )
+        }
+      )
+  }
+
+  const UserUpdate = () => {
+    let body: any = {
+      "username": userUpdateUsername
+    }
+    const url = `${window.api}/user/update/` + userUpdateID
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          setManualRender(!manualRender)
+          setUserUpdateOepn(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        } else {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "用户接口请求失败",
+            window.messageDefault
+          )
+        }
+      )
+  }
+
+  const UserDelete = () => {
+    const url = `${window.api}/user/delete/` + userDeleteID
+    fetch(url, {
+      method: "POST",
+    }).then(res => res.json())
+      .then(response => {
+        let status = response.status
+        if (status === 1) {
+          setManualRender(!manualRender)
+          setUserDeleteOepn(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        } else {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            response.message,
+            window.messageDefault
+          )
+        }
+      })
+      .catch(
+        () => {
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(
+            "用户接口请求失败",
             window.messageDefault
           )
         }
@@ -86,7 +192,7 @@ export default function Users() {
         () => {
           window.messageDefault.variant = "error"
           enqueueSnackbar(
-            "用户数据载入失败",
+            "用户接口请求失败",
             window.messageDefault
           )
         }
@@ -110,44 +216,71 @@ export default function Users() {
           <TextField
             label="用户名"
             variant="outlined"
-            value={username}
-            onChange={(event) => UsernameChange(event)}
+            value={userAddUsername}
+            onChange={(event) => UserAddUsernameChange(event)}
           />
-          <Button variant="contained" onClick={() => UserAdd()}>增加</Button>
+          <Button variant="contained" onClick={() => UserAdd()}>提交</Button>
         </Stack>
       </Container>
 
       <Container key={"Users-List"}>
-        <Button
-          variant="contained"
-          onClick={() => ShowSecret()}
-          startIcon={showKey ? <VisibilityOffIcon /> : <VisibilityIcon />}
+        <Stack
+          spacing={{ xs: 2, sm: 2 }}
+          direction="row"
+          justifyContent="flex-start"
+          useFlexGap
+          flexWrap="wrap"
         >
-          {showKey ? "隐藏密钥" : "显示密钥"}
-        </Button>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ width: "4%" }} align="center">ID</TableCell>
-              <TableCell sx={{ width: "10%" }} align="center">用户名</TableCell>
-              <TableCell sx={{ width: "42%" }} align="center">私钥</TableCell>
-              <TableCell sx={{ width: "42%" }} align="center">公钥</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {userData.map((data: any, index: number) => (
-              <TableRow key={"userdata" + index}>
-                <TableCell align="center">{data.id}</TableCell>
-                <TableCell align="center">{data.username}</TableCell>
-                {showKey && <TableCell align="center">{data.private_key}</TableCell>}
-                {!showKey && <TableCell align="center">{"**********"}</TableCell>}
-                {showKey && <TableCell align="center">{data.public_key}</TableCell>}
-                {!showKey && <TableCell align="center">{"**********"}</TableCell>}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          {userData.map((data: any, index: number) => (
+            <Card key={"user" + index} sx={{ minWidth: 200 }}>
+              <CardContent sx={{ textAlign: "center" }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  {data.username}
+                </Typography>
+                <Tooltip title={data.private_key}>
+                  <Button>私钥</Button>
+                </Tooltip>
+                <Tooltip title={data.public_key}>
+                  <Button>公钥</Button>
+                </Tooltip>
+              </CardContent>
+              <CardActions>
+                <Button onClick={() => UserUpdateOpen(data)}>修改</Button>
+                <Button onClick={() => UserDeleteOpen(data)} color="error" >删除</Button>
+              </CardActions>
+            </Card>
+          ))}
+        </Stack>
       </Container>
+
+      <Dialog open={userUpdateOpen} onClose={UserUpdateClose}>
+        <DialogTitle>修改用户</DialogTitle>
+        <DialogContent>
+          <Box sx={{ padding: 1 }}>
+            <TextField
+              label="用户名"
+              variant="outlined"
+              value={userUpdateUsername}
+              onChange={(event) => UserUpdateUsernameChange(event)}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={UserUpdateClose}>取消</Button>
+          <Button onClick={() => UserUpdate()}>提交</Button>
+        </DialogActions>
+      </Dialog>
+
+
+      <Dialog open={userDeleteOpen} onClose={UserDeleteClose}>
+        <DialogTitle>确认删除用户</DialogTitle>
+        <DialogActions>
+          <Button onClick={UserDeleteClose}>取消</Button>
+          <Button onClick={() => UserDelete()}>提交</Button>
+        </DialogActions>
+      </Dialog>
+
+
     </Container>
   )
 }
