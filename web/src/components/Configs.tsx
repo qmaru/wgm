@@ -341,7 +341,11 @@ export default function Configs() {
                       key={"interface" + index}
                       value={peer.id}
                       control={<Radio color={peer.public_addr === "" ? "primary" : "secondary"} />}
-                      label={InterfaceOption(peer)}
+                      label={
+                        <Typography color={peer.public_addr === "" ? "default" : "secondary"}>
+                          {InterfaceOption(peer)}
+                        </Typography>
+                      }
                     />
                   )
                 })}
@@ -356,7 +360,11 @@ export default function Configs() {
                       <Stack key={"peer" + index}>
                         <Box>
                           <FormControlLabel
-                            label={InterfaceOption(peer)}
+                            label={
+                              <Typography color={peer.public_addr === "" ? "default" : "secondary"}>
+                                {InterfaceOption(peer)}
+                              </Typography>
+                            }
                             control={
                               <Checkbox
                                 name={peer.id.toString()}
