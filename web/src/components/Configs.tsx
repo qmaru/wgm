@@ -25,7 +25,7 @@ import OutlinedInput from '@mui/material/OutlinedInput'
 import InputLabel from '@mui/material/InputLabel'
 
 import { useSnackbar } from 'notistack'
-import { CopyToClipboard } from 'react-copy-to-clipboard'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import QRCode from "react-qr-code"
 
 export default function Configs() {
@@ -44,6 +44,8 @@ export default function Configs() {
   const [interfaceNode, setInterfaceNode] = useState<string>("")
   const [peerNodes, setPeerNodes] = useState<any>([])
   const [routeNodes, setRouteNodes] = useState<any>([])
+  const [interfaceConfig, setInterfaceConfig] = useState<any>([])
+  const [peerConfigs, setPeerConfigs] = useState<any>([])
 
   const QRClose = () => {
     setQROpen(false)
@@ -94,6 +96,8 @@ export default function Configs() {
     setActiveStep((prevActiveStep) => prevActiveStep + 1)
   }
 
+
+
   const StepBack = () => {
     if (activeStep === 1) {
       setInterfaceNode("")
@@ -126,6 +130,7 @@ export default function Configs() {
   }
 
   const ConfigOut = () => {
+    setActiveStep((prevActiveStep) => prevActiveStep + 1)
     let configInterface: any = {}
     let configPeers: any = []
     for (let i in peerData) {
@@ -154,7 +159,7 @@ export default function Configs() {
     let interface_dns = ""
 
     if (configInterface.port !== 0) {
-      interface_port = `ListenPort =  ${configInterface.port}`
+      interface_port = `ListenPort = ${configInterface.port}`
     }
 
     if (configInterface.mtu !== 0) {
@@ -208,50 +213,21 @@ export default function Configs() {
       peer_tmp.push(peer_allowed_ips)
       peer_tmp.push(peer_endpoint)
       peer_tmp.push(peer_keepalive)
-      peer_configs.push(peer_tmp)
+      const peer_tmp_f = peer_tmp.filter((item: any) => item !== "")
+      peer_configs.push(peer_tmp_f)
     }
 
-    const interface_config_str = interface_config.join("\n")
+    const interface_config_f = interface_config.filter((item: any) => item !== "")
+
+    const interface_config_str = interface_config_f.join("\n")
     const peer_config_str = peer_configs.map((config: any) => config.join("\n")).join("\n")
 
-    const configDataStr = interface_config_str + peer_config_str
+    const configDataStr = interface_config_str + "\n\n" + peer_config_str + "\n\n"
     setCopyData(configDataStr)
     setQrData(configDataStr)
 
-    return (
-      <Box>
-        <Box sx={{ paddingBottom: 2 }}>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => QROpen()}
-            disabled={activeStep !== steps.length}
-          >
-            显示二维码
-          </Button>
-        </Box>
-        <Paper elevation={2} sx={{ padding: 2 }}>
-          {interface_config.map((inter_c: any, index: number) => {
-            return (
-              <Typography key={"inter" + index}>{inter_c}</Typography>
-            )
-          })}
-          <Box m={2} />
-          {peer_configs.map((peer_config: any, index: number) => {
-            return (
-              <Box >
-                {peer_config.map((peer: any, index: number) => {
-                  return (
-                    <Typography key={"peer" + index}>{peer}</Typography>
-                  )
-                })}
-                <Box m={2} />
-              </Box>
-            )
-          })}
-        </Paper>
-      </Box>
-    )
+    setInterfaceConfig(interface_config_f)
+    setPeerConfigs(peer_configs)
   }
 
   const PeerDataList = useCallback(() => {
@@ -345,7 +321,7 @@ export default function Configs() {
             <Box sx={{ flex: '1 1 auto' }} />
             <Button
               variant="contained"
-              onClick={StepNext}
+              onClick={activeStep === 1 ? ConfigOut : StepNext}
             >
               {activeStep === steps.length - 1 ? '完成' : '下一步'}
             </Button>
@@ -424,7 +400,38 @@ export default function Configs() {
                 </Stack>
               </FormGroup>
               :
-              <ConfigOut />
+              <Box>
+                <Box sx={{ paddingBottom: 2 }}>
+                  <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => QROpen()}
+                    disabled={activeStep !== steps.length}
+                  >
+                    显示二维码
+                  </Button>
+                </Box>
+                <Paper elevation={2} sx={{ padding: 2 }}>
+                  {interfaceConfig.map((inter_c: any, index: number) => {
+                    return (
+                      <Typography key={"intercfg" + index}>{inter_c}</Typography>
+                    )
+                  })}
+                  <Box m={2} />
+                  {peerConfigs.map((peer_config: any, index: number) => {
+                    return (
+                      <Box key={"peerscfg" + index}>
+                        {peer_config.map((peer: any, index: number) => {
+                          return (
+                            <Typography key={"peercfg" + index}>{peer}</Typography>
+                          )
+                        })}
+                        <Box m={2} />
+                      </Box>
+                    )
+                  })}
+                </Paper>
+              </Box>
           }
         </Box>
       </Container>
