@@ -220,7 +220,7 @@ export default function Configs() {
     const interface_config_f = interface_config.filter((item: any) => item !== "")
 
     const interface_config_str = interface_config_f.join("\n")
-    const peer_config_str = peer_configs.map((config: any) => config.join("\n")).join("\n")
+    const peer_config_str = peer_configs.map((config: any) => config.join("\n")).join("\n\n")
 
     const configDataStr = interface_config_str + "\n\n" + peer_config_str + "\n\n"
     setCopyData(configDataStr)
@@ -357,7 +357,11 @@ export default function Configs() {
                 <Stack>
                   {peerData.map((peer: any, index: number) => {
                     return (
-                      <Stack key={"peer" + index}>
+                      <Stack key={"peer" + index}
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
+                      >
                         <Box>
                           <FormControlLabel
                             label={
@@ -376,7 +380,7 @@ export default function Configs() {
                         </Box>
 
                         <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
-                          <FormControl sx={{ width: "50%" }}>
+                          <FormControl sx={{ width: 400 }}>
                             <InputLabel>路由</InputLabel>
                             <Select
                               multiple
