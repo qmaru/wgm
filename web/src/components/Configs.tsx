@@ -23,6 +23,7 @@ import DialogContent from '@mui/material/DialogContent'
 import MenuItem from '@mui/material/MenuItem'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputLabel from '@mui/material/InputLabel'
+import Divider from '@mui/material/Divider'
 
 import { useSnackbar } from 'notistack'
 import CopyToClipboard from 'react-copy-to-clipboard'
@@ -123,10 +124,23 @@ export default function Configs() {
     const port = peer.port
     let public_info = ""
     if (public_addr !== "") {
-      public_info = ` | ${public_addr}:${port}`
+      public_info = `${public_addr}:${port}`
     }
-    const option = `${username} | ${private_addr}${public_info}`
-    return option
+    return (
+      <Stack
+        divider={<Divider orientation="vertical" flexItem />}
+        direction="row"
+        spacing={1}
+      >
+        <Typography color={public_addr === "" ? "default" : "secondary"}>
+          {username}
+        </Typography>
+        <Typography color={public_addr === "" ? "default" : "secondary"}>
+          {private_addr}
+        </Typography>
+        {public_info === "" ? null : <Typography color={public_addr === "" ? "default" : "secondary"}>{public_info}</Typography>}
+      </Stack>
+    )
   }
 
   const ConfigOut = () => {
@@ -304,7 +318,7 @@ export default function Configs() {
             >
               <Button
                 variant="contained"
-                color={copyOpen ? 'success' : 'primary'}>
+                color='success'>
                 {copyOpen ? "已复制" : "复制"}
               </Button>
             </CopyToClipboard>
@@ -341,11 +355,7 @@ export default function Configs() {
                       key={"interface" + index}
                       value={peer.id}
                       control={<Radio color={peer.public_addr === "" ? "primary" : "secondary"} />}
-                      label={
-                        <Typography color={peer.public_addr === "" ? "default" : "secondary"}>
-                          {InterfaceOption(peer)}
-                        </Typography>
-                      }
+                      label={InterfaceOption(peer)}
                     />
                   )
                 })}
@@ -357,56 +367,55 @@ export default function Configs() {
                 <Stack>
                   {peerData.map((peer: any, index: number) => {
                     return (
-                      <Stack key={"peer" + index}
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
-                      >
-                        <Box>
-                          <FormControlLabel
-                            label={
-                              <Typography color={peer.public_addr === "" ? "default" : "secondary"}>
-                                {InterfaceOption(peer)}
-                              </Typography>
-                            }
-                            control={
-                              <Checkbox
-                                name={peer.id.toString()}
-                                color={peer.public_addr === "" ? "primary" : "secondary"}
-                                onChange={PeerNodesChange}
-                              />
-                            }
-                          />
-                        </Box>
+                      <Box>
+                        <Stack key={"peer" + index}
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
+                        >
+                          <Box>
+                            <FormControlLabel
+                              label={InterfaceOption(peer)}
+                              control={
+                                <Checkbox
+                                  name={peer.id.toString()}
+                                  color={peer.public_addr === "" ? "primary" : "secondary"}
+                                  onChange={PeerNodesChange}
+                                />
+                              }
+                            />
+                          </Box>
 
-                        <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
-                          <FormControl sx={{ width: 400 }}>
-                            <InputLabel>路由</InputLabel>
-                            <Select
-                              multiple
-                              value={routeNodes[peer.id.toString()] || []}
-                              onChange={(event) => RouteNodesChange(event, peer.id.toString())}
-                              input={<OutlinedInput label="Chip" />}
-                              renderValue={(selected) => (
-                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                  {selected.map((value: any) => (
-                                    <Chip key={value} label={value} />
-                                  ))}
-                                </Box>
-                              )}
-                            >
-                              {routeData.map((route: any) => (
-                                <MenuItem
-                                  key={"route" + route.id}
-                                  value={route.cidr}
-                                >
-                                  {route.cidr}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
+                          <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
+                            <FormControl sx={{ width: 400 }}>
+                              <InputLabel>路由</InputLabel>
+                              <Select
+                                multiple
+                                value={routeNodes[peer.id.toString()] || []}
+                                onChange={(event) => RouteNodesChange(event, peer.id.toString())}
+                                input={<OutlinedInput label="Chip" />}
+                                renderValue={(selected) => (
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((value: any) => (
+                                      <Chip key={value} label={value} />
+                                    ))}
+                                  </Box>
+                                )}
+                              >
+                                {routeData.map((route: any) => (
+                                  <MenuItem
+                                    key={"route" + route.id}
+                                    value={route.cidr}
+                                  >
+                                    {route.cidr}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                        <Divider />
+                      </Box>
                     )
                   })}
                 </Stack>

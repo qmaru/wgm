@@ -14,6 +14,7 @@ import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Tooltip from '@mui/material/Tooltip'
+import Chip from '@mui/material/Chip'
 
 import { useSnackbar } from 'notistack'
 
@@ -237,12 +238,19 @@ export default function Users() {
                 <Typography variant="subtitle2" gutterBottom>
                   {data.username}
                 </Typography>
-                <Tooltip title={data.private_key}>
-                  <Button>私钥</Button>
-                </Tooltip>
-                <Tooltip title={data.public_key}>
-                  <Button>公钥</Button>
-                </Tooltip>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <Tooltip title={data.private_key} placement="top">
+                    <Chip label="私钥" />
+                  </Tooltip>
+                  <Tooltip title={data.public_key} placement="top">
+                    <Chip label="公钥" />
+                  </Tooltip>
+                </Stack>
               </CardContent>
               <CardActions>
                 <Button onClick={() => UserUpdateOpen(data)}>修改</Button>

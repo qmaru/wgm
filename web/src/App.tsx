@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import { blue } from '@mui/material/colors'
+import cyan from '@mui/material/colors/cyan'
 import { SnackbarProvider } from 'notistack'
 
 import Tabs from '@mui/material/Tabs'
@@ -21,8 +21,11 @@ export default function App() {
       createTheme({
         palette: {
           primary: {
-            main: blue[800],
+            main: cyan[900]
           },
+          secondary:{
+            main: cyan[600]
+          }
         },
       }),
     [],
