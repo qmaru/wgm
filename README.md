@@ -1,20 +1,13 @@
 # wgm
 
-编译web目录下的前端代码，将 build 文件夹复制到 assets 目录下
+Build Binary
 
 ```node
-yarn build
-```
+wails build --tags ui --ldflags='-s -w' -upx -upxflags "--best --lzma"
 
-编译二进制文件
+# go ldflags
+wails build --tags ui --ldflags='-s -w'
 
-```go
-go build
-```
-
-运行文件并使用浏览器访问 <http://127.0.0.1:8373>
-
-```go
-wgm init
-wgm api
+# with upx
+wails build --tags ui --ldflags='-s -w' -upx -upxflags "--best --lzma"
 ```

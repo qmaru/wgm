@@ -23,6 +23,7 @@ func init() {
 		log.Fatal(err)
 	}
 	Sqlite = qdb.NewSqlitep(db)
+	CreataTable()
 }
 
 // CreataTable 初始化数据表

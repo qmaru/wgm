@@ -1,27 +1,21 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-web/node_modules
-web/.pnp
-web/.pnp.js
-
-# testing
-web/coverage
-
-# production
-web/build
-
-# misc
-web/.DS_Store
-web/.env.local
-web/.env.development.local
-web/.env.test.local
-web/.env.production.local
-
-web/npm-debug.log*
-web/yarn-debug.log*
-web/yarn-error.log*
-web/.yarn/cache
+# ui
+ui/frontend/node_modules
+ui/frontend/.pnp
+ui/frontend/.pnp.js
+ui/frontend/coverage
+ui/frontend/build
+ui/frontend/.DS_Store
+ui/frontend/.env.local
+ui/frontend/.env.development.local
+ui/frontend/.env.test.local
+ui/frontend/.env.production.local
+ui/frontend/npm-debug.log*
+ui/frontend/yarn-debug.log*
+ui/frontend/yarn-error.log*
+ui/frontend/.yarn/cache
+ui/build/bin
 # Binaries for programs and plugins
 *.exe
 *.exe~
@@ -40,4 +34,3 @@ web/.yarn/cache
 go.work
 go.work.sum
 wgm.db
-webview/assets

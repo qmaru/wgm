@@ -13,7 +13,3 @@ var (
 		},
 	}
 )
-
-func init() {
-	DBCmd.AddCommand(dbInit)
-}
