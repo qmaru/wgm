@@ -2,8 +2,9 @@
 
 Build Binary
 
-```node
-wails build --tags ui --ldflags='-s -w' -upx -upxflags "--best --lzma"
+```shell
+# normal
+wails build --tags ui
 
 # go ldflags
 wails build --tags ui --ldflags='-s -w'
