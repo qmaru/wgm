@@ -6,7 +6,7 @@ import (
 	"wgm/configs"
 	"wgm/dbs/models"
 
-	"github.com/qmaru/qdb"
+	"github.com/qmaru/qdb/sqlitep"
 )
 
 const (
@@ -15,14 +15,14 @@ const (
 	PeerTable  string = "peers"
 )
 
-var Sqlite qdb.Sqlitep
+var Sqlite *sqlitep.Sqlitep
 
 func init() {
 	db, err := configs.DatabaseConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	Sqlite = qdb.NewSqlitep(db)
+	Sqlite = sqlitep.New(db)
 	CreataTable()
 }
 
