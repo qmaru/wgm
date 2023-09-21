@@ -5,7 +5,7 @@ ui/frontend/node_modules
 ui/frontend/.pnp
 ui/frontend/.pnp.js
 ui/frontend/coverage
-ui/frontend/build
+ui/frontend/dist
 ui/frontend/.DS_Store
 ui/frontend/.env.local
 ui/frontend/.env.development.local

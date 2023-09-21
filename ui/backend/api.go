@@ -3,11 +3,11 @@ package backend
 import (
 	"context"
 
-	"wgm/dbs/models"
-	"wgm/services/data"
-	"wgm/services/peers"
-	"wgm/services/routes"
-	"wgm/services/users"
+	"wgm/common/dbs/models"
+	"wgm/common/services/data"
+	"wgm/common/services/peers"
+	"wgm/common/services/routes"
+	"wgm/common/services/users"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )

@@ -3,7 +3,7 @@
 package main
 
 import (
-	"wgm/cmd"
+	"wgm/cli/cmd"
 )
 
 func main() {
