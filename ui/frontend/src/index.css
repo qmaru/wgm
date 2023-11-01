@@ -16,3 +16,10 @@ body::-webkit-scrollbar {
 a {
   text-decoration: none;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1d1d1d;
+    color           : #f5f5f5;
+  }
+}

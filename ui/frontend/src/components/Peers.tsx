@@ -1,14 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import Container from '@mui/material/Container'
-import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -19,13 +15,17 @@ import FormControl from '@mui/material/FormControl'
 import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
 import Select from '@mui/material/Select'
+import { useTheme } from '@mui/material/styles'
 
 import { useSnackbar } from 'notistack'
 
 import { UserListAPI, PeerListAPI, PeerAddAPI, PeerUpdateAPI, PeerDeleteAPI } from "../../wailsjs/go/backend/App"
+import { MyCard } from './common'
 
 
 export default function Peers() {
+  const theme = useTheme()
+
   const { enqueueSnackbar } = useSnackbar()
   const [manualRender, setManualRender] = useState<boolean>(false)
 
@@ -460,8 +460,8 @@ export default function Peers() {
   }, [UserList])
 
   return (
-    <Container key="Peer-Main">
-      <Container key="Peer-Control"
+    <Container key="Peer-Main" disableGutters maxWidth={false}>
+      <Container key="Peer-Control" disableGutters maxWidth={false}
         sx={{
           padding: 4,
           display: 'flex',
@@ -482,18 +482,18 @@ export default function Peers() {
           flexWrap="wrap"
         >
           {peerData.map((data: any, index: number) => (
-            <Box key={"peer" + index} sx={{ minWidth: 250 }}>
-              <Card>
-                <CardContent>
+            <MyCard key={"peer" + index}
+              content={
+                <>
                   {data.public_addr !== "" ?
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary">
+                    <Typography sx={{ fontSize: 14, p: 0.5, color: data.public_addr !== "" ? theme.palette.primary.main : "" }} color="text.secondary">
                       {data.public_addr}:{data.port}
                     </Typography> :
-                    <Typography sx={{ fontSize: 14 }} color="text.secondary">
+                    <Typography sx={{ fontSize: 14, p: 0.5 }} color="text.secondary">
                       未设置公网
                     </Typography>
                   }
-                  <Typography variant="h6">
+                  <Typography variant="h6" sx={{ p: 0.5, color: data.public_addr !== "" ? theme.palette.primary.main : "" }}>
                     {data.username}
                   </Typography>
                   <Typography color="text.secondary">
@@ -502,24 +502,42 @@ export default function Peers() {
                   <Typography sx={{ mb: 1.5 }} color="text.secondary">
                     {data.allowed_ips}
                   </Typography>
-                  <Stack direction="row" spacing={1}>
+                  <Stack
+                    spacing={1}
+                    justifyContent="center"
+                    alignItems="center"
+                  >
                     <Tooltip title={data.dns === "" ? "未设置DNS" : data.dns} placement="top">
-                      <Chip label="dns" />
+                      <Chip clickable
+                        sx={{ borderRadius: 2, width: 100 }}
+                        variant="outlined"
+                        label="dns"
+                        color="success"
+                      />
                     </Tooltip>
                     <Tooltip title={data.mtu === 0 ? "未设置MTU" : data.mtu} placement="top">
-                      <Chip label="mtu" />
+                      <Chip clickable
+                        sx={{ borderRadius: 2, width: 100 }}
+                        variant="outlined"
+                        label="mtu"
+                        color="success"
+                      />
                     </Tooltip>
                     <Tooltip title={data.keepalive} placement="top">
-                      <Chip label="Keepalive" />
+                      <Chip clickable
+                        sx={{ borderRadius: 2, width: 100 }}
+                        variant="outlined"
+                        label="keepalive"
+                        color="success"
+                      />
                     </Tooltip>
                   </Stack>
-                </CardContent>
-                <CardActions>
-                  <Button onClick={() => PeerUpdateOpen(data)}>修改</Button>
-                  <Button onClick={() => PeerDeleteOpen(data)} color="error" >删除</Button>
-                </CardActions>
-              </Card>
-            </Box>
+                </>
+              }
+              contentStyle={{ height: 240 }}
+              onEdit={() => PeerUpdateOpen(data)}
+              onDelete={() => PeerDeleteOpen(data)}
+            />
           ))}
         </Stack>
       </Container>

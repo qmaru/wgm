@@ -17,11 +17,8 @@ window.messageDefault = {
     }
 }
 
-const marjorVer = "2"
-const minorVer = "0"
-const dateVer = "20231031"
 // API 地址
 window.api = "http://127.0.0.1:30000/api/v1"
-window.version = marjorVer + "." + minorVer + "-" + dateVer
+window.version = "20231101"
 
 export { }

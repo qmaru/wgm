@@ -6,9 +6,6 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
@@ -17,6 +14,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import { useSnackbar } from 'notistack'
 
 import { RouteListAPI, RouteAddAPI, RouteUpdateAPI, RouteDeleteAPI } from "../../wailsjs/go/backend/App"
+import { MyCard } from './common'
 
 
 export default function Routes() {
@@ -187,8 +185,8 @@ export default function Routes() {
   }, [RouteList, manualRender])
 
   return (
-    <Container key={"Routes-Main"}>
-      <Container key={"Routes-Control"}
+    <Container key={"Routes-Main"} disableGutters maxWidth={false}>
+      <Container key={"Routes-Control"} disableGutters maxWidth={false}
         sx={{
           padding: 4,
           display: 'flex',
@@ -206,7 +204,7 @@ export default function Routes() {
         </Stack>
       </Container>
 
-      <Container key={"Routes-List"} sx={{ width: 600, paddingBottom: 4 }}>
+      <Container key={"Routes-List"} sx={{ maxWidth: 800, paddingBottom: 4 }}>
         <Stack
           spacing={{ xs: 2, sm: 2 }}
           direction="row"
@@ -215,17 +213,20 @@ export default function Routes() {
           flexWrap="wrap"
         >
           {routeData.map((data: any, index: number) => (
-            <Card key={"route" + index}>
-              <CardContent>
-                <Typography variant="subtitle2" gutterBottom>
+            <MyCard key={"route" + index}
+              content={
+                <Typography variant="body1">
                   {data.cidr}
                 </Typography>
-              </CardContent>
-              <CardActions>
-                <Button onClick={() => RouteUpdateOpen(data)}>修改</Button>
-                <Button onClick={() => RouteDeleteOpen(data)} color="error" >删除</Button>
-              </CardActions>
-            </Card>
+              }
+              contentStyle={{
+                display: "flex",
+                alignItems: "center",
+                minWidth: 140,
+              }}
+              onEdit={() => RouteUpdateOpen(data)}
+              onDelete={() => RouteDeleteOpen(data)}
+            />
           ))}
         </Stack>
       </Container>
@@ -257,6 +258,6 @@ export default function Routes() {
         </DialogActions>
       </Dialog>
 
-    </Container>
+    </Container >
   )
 }

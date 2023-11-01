@@ -24,14 +24,48 @@ import MenuItem from '@mui/material/MenuItem'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import InputLabel from '@mui/material/InputLabel'
 import Divider from '@mui/material/Divider'
+import { useTheme } from '@mui/material/styles'
 
 import { useSnackbar } from 'notistack'
 import QRCode from "react-qr-code"
 
 import { ClipboardText, DataListAPI } from "../../wailsjs/go/backend/App"
 
+const steps = [
+  "选择 Interface",
+  "选择 Peers",
+  "确认配置"
+]
+
+const InterfaceOption = (peer: any) => {
+  const username = peer.username
+  const private_addr = peer.private_addr
+  const public_addr = peer.public_addr
+  const port = peer.port
+  let public_info = ""
+  if (public_addr !== "") {
+    public_info = `${public_addr}:${port}`
+  }
+  return (
+    <Stack
+      divider={<Divider orientation="vertical" flexItem />}
+      direction="row"
+      spacing={1}
+    >
+      <Typography color={public_addr === "" ? "default" : "secondary"}>
+        {username}
+      </Typography>
+      <Typography color={public_addr === "" ? "default" : "secondary"}>
+        {private_addr}
+      </Typography>
+      {public_info === "" ? null : <Typography color={public_addr === "" ? "default" : "secondary"}>{public_info}</Typography>}
+    </Stack>
+  )
+}
+
 
 export default function Configs() {
+  const theme = useTheme()
   const { enqueueSnackbar } = useSnackbar()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -74,12 +108,6 @@ export default function Configs() {
     }))
   }
 
-  const steps = [
-    "选择 Interface",
-    "选择 Peers",
-    "确认配置"
-  ]
-
   const StepNext = () => {
     if (activeStep === 0 && interfaceNode === "") {
       window.messageDefault.variant = "warning"
@@ -87,14 +115,7 @@ export default function Configs() {
         "请选择 Interface",
         window.messageDefault
       )
-      return
-    } else if (activeStep === 1 && peerNodes.length === 0) {
-      window.messageDefault.variant = "warning"
-      enqueueSnackbar(
-        "请选择 Peers",
-        window.messageDefault
-      )
-      return
+      return false
     }
     setActiveStep((prevActiveStep) => prevActiveStep + 1)
   }
@@ -117,33 +138,16 @@ export default function Configs() {
     setCopyOpen(false)
   }
 
-  const InterfaceOption = (peer: any) => {
-    const username = peer.username
-    const private_addr = peer.private_addr
-    const public_addr = peer.public_addr
-    const port = peer.port
-    let public_info = ""
-    if (public_addr !== "") {
-      public_info = `${public_addr}:${port}`
-    }
-    return (
-      <Stack
-        divider={<Divider orientation="vertical" flexItem />}
-        direction="row"
-        spacing={1}
-      >
-        <Typography color={public_addr === "" ? "default" : "secondary"}>
-          {username}
-        </Typography>
-        <Typography color={public_addr === "" ? "default" : "secondary"}>
-          {private_addr}
-        </Typography>
-        {public_info === "" ? null : <Typography color={public_addr === "" ? "default" : "secondary"}>{public_info}</Typography>}
-      </Stack>
-    )
-  }
-
   const ConfigOut = () => {
+    if (activeStep === 1 && peerNodes.length === 0) {
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar(
+        "请选择 Peers",
+        window.messageDefault
+      )
+      return false
+    }
+
     setActiveStep((prevActiveStep) => prevActiveStep + 1)
     let configInterface: any = {}
     let configPeers: any = []
@@ -292,10 +296,10 @@ export default function Configs() {
   }, [PeerDataList])
 
   return (
-    <Container key={"Peers-Main"}>
+    <Container key={"Peers-Main"} disableGutters maxWidth={false}>
 
       <Container key={"Peers-Stepper"}
-        sx={{ p: 2 }}
+        sx={{ p: 4 }}
       >
         <Stepper activeStep={activeStep}>
           {steps.map((step: any, index: number) => {
@@ -308,9 +312,7 @@ export default function Configs() {
         </Stepper>
       </Container>
 
-      <Container key={"Peers-Step-Main"}
-        sx={{ paddingBottom: 4 }}
-      >
+      <Container key={"Peers-Step-Main"} sx={{ pb: 4 }}>
         {activeStep === steps.length ?
           <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Button
@@ -350,7 +352,7 @@ export default function Configs() {
         <Box sx={{ paddingTop: 3 }}>
           {activeStep === 0 ?
             <FormControl>
-              <FormLabel>选择一个接口</FormLabel>
+              <FormLabel sx={{ paddingBottom: 1 }}>选择<b>本地</b>接口 Interface</FormLabel>
               <RadioGroup
                 value={interfaceNode}
                 onChange={InterfaceNodeChange}
@@ -359,6 +361,7 @@ export default function Configs() {
                   return (
                     <FormControlLabel
                       key={"interface" + index}
+                      sx={{ pt: 1 }}
                       value={peer.id}
                       control={<Radio color={peer.public_addr === "" ? "primary" : "secondary"} />}
                       label={InterfaceOption(peer)}
@@ -369,12 +372,12 @@ export default function Configs() {
             </FormControl>
             : activeStep === 1 ?
               <FormGroup>
-                <FormLabel>选择节点</FormLabel>
+                <FormLabel>选择<b>对端</b> Peer</FormLabel>
                 <Stack>
                   {peerData.map((peer: any, index: number) => {
                     return (
-                      <Box>
-                        <Stack key={"peer" + index}
+                      <Box key={"peer" + index}>
+                        <Stack
                           direction="row"
                           justifyContent="space-between"
                           alignItems="center"
@@ -394,7 +397,7 @@ export default function Configs() {
 
                           <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
                             <FormControl sx={{ width: 400 }}>
-                              <InputLabel>路由</InputLabel>
+                              <InputLabel>路由规则</InputLabel>
                               <Select
                                 multiple
                                 value={routeNodes[peer.id.toString()] || []}
@@ -428,7 +431,7 @@ export default function Configs() {
               </FormGroup>
               :
               <Box>
-                <Box sx={{ paddingBottom: 2 }}>
+                <Box sx={{ paddingBottom: 4 }}>
                   <Button
                     variant="contained"
                     color="secondary"
@@ -439,25 +442,35 @@ export default function Configs() {
                     显示二维码
                   </Button>
                 </Box>
-                <Paper elevation={2} sx={{ padding: 2 }}>
-                  {interfaceConfig.map((inter_c: any, index: number) => {
-                    return (
-                      <Typography key={"intercfg" + index}>{inter_c}</Typography>
-                    )
-                  })}
-                  <Box m={2} />
-                  {peerConfigs.map((peer_config: any, index: number) => {
-                    return (
-                      <Box key={"peerscfg" + index}>
-                        {peer_config.map((peer: any, index: number) => {
-                          return (
-                            <Typography key={"peercfg" + index}>{peer}</Typography>
-                          )
-                        })}
-                        <Box m={2} />
-                      </Box>
-                    )
-                  })}
+                <Paper variant="outlined" sx={{ borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}>
+                  <Box
+                    sx={{
+                      borderTopLeftRadius: 8,
+                      borderTopRightRadius: 8,
+                      backgroundColor: theme.palette.primary.main,
+                      p: 0.6
+                    }}
+                  />
+                  <Box sx={{ p: 2 }}>
+                    {interfaceConfig.map((inter_c: any, index: number) => {
+                      return (
+                        <Typography key={"intercfg" + index}>{inter_c}</Typography>
+                      )
+                    })}
+                    <Box m={2} />
+                    {peerConfigs.map((peer_config: any, index: number) => {
+                      return (
+                        <Box key={"peerscfg" + index}>
+                          {peer_config.map((peer: any, index: number) => {
+                            return (
+                              <Typography key={"peercfg" + index}>{peer}</Typography>
+                            )
+                          })}
+                          <Box m={2} />
+                        </Box>
+                      )
+                    })}
+                  </Box>
                 </Paper>
               </Box>
           }

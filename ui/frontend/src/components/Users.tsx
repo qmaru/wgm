@@ -6,20 +6,17 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import Card from '@mui/material/Card'
-import CardActions from '@mui/material/CardActions'
-import CardContent from '@mui/material/CardContent'
 import Dialog from '@mui/material/Dialog'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
-
 import { useSnackbar } from 'notistack'
 
 import { UserListAPI, UserAddAPI, UserUpdateAPI, UserDeleteAPI } from "../../wailsjs/go/backend/App"
 
+import { MyCard } from './common'
 
 export default function Users() {
   const { enqueueSnackbar } = useSnackbar()
@@ -189,8 +186,8 @@ export default function Users() {
   }, [UserList, manualRender])
 
   return (
-    <Container key={"Users-Main"}>
-      <Container key={"Users-Control"}
+    <Container key={"Users-Main"} disableGutters maxWidth={false}>
+      <Container key={"Users-Control"} disableGutters maxWidth={false}
         sx={{
           padding: 4,
           display: 'flex',
@@ -208,9 +205,7 @@ export default function Users() {
         </Stack>
       </Container>
 
-      <Container key={"Users-List"}
-        sx={{ paddingBottom: 4 }}
-      >
+      <Container key={"Users-List"} sx={{ paddingBottom: 4 }} >
         <Stack
           spacing={{ xs: 2, sm: 2 }}
           direction="row"
@@ -219,30 +214,41 @@ export default function Users() {
           flexWrap="wrap"
         >
           {userData.map((data: any, index: number) => (
-            <Card key={"user" + index} sx={{ minWidth: 200 }}>
-              <CardContent sx={{ textAlign: "center" }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  {data.username}
-                </Typography>
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <Tooltip title={data.private_key} placement="top">
-                    <Chip label="私钥" />
-                  </Tooltip>
-                  <Tooltip title={data.public_key} placement="top">
-                    <Chip label="公钥" />
-                  </Tooltip>
-                </Stack>
-              </CardContent>
-              <CardActions>
-                <Button onClick={() => UserUpdateOpen(data)}>修改</Button>
-                <Button onClick={() => UserDeleteOpen(data)} color="error" >删除</Button>
-              </CardActions>
-            </Card>
+            <MyCard key={"user" + index}
+              content={
+                <>
+                  <Typography variant="body1" gutterBottom>
+                    {data.username}
+                  </Typography>
+                  <Stack
+                    spacing={2}
+                    justifyContent="center"
+                    alignItems="center"
+                    sx={{ p: 2 }}
+                  >
+                    <Tooltip title={data.private_key} placement="top">
+                      <Chip clickable
+                        sx={{ borderRadius: 2, width: 100 }}
+                        variant="outlined"
+                        label="Private"
+                        color="info"
+                      />
+                    </Tooltip>
+                    <Tooltip title={data.public_key} placement="top">
+                      <Chip clickable
+                        sx={{ borderRadius: 2, width: 100 }}
+                        variant="outlined"
+                        label="Public"
+                        color="success"
+                      />
+                    </Tooltip>
+                  </Stack>
+                </>
+              }
+              contentStyle={{ pb: 4, minWidth: 150 }}
+              onEdit={() => UserUpdateOpen(data)}
+              onDelete={() => UserDeleteOpen(data)}
+            />
           ))}
         </Stack>
       </Container>

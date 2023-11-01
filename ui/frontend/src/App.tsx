@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react'
 import { createTheme, ThemeProvider } from '@mui/material/styles'
 import themeColor from '@mui/material/colors/indigo'
 import { SnackbarProvider } from 'notistack'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 import Tabs from '@mui/material/Tabs'
 import Tab from '@mui/material/Tab'
@@ -16,19 +17,27 @@ import Users from './components/Users'
 import "./global"
 
 export default function App() {
+  const prefersDarkMode: boolean = useMediaQuery('(prefers-color-scheme: dark)')
+  const darkMode: boolean = prefersDarkMode
+
   var GlobalTheme = useMemo(
     () =>
       createTheme({
         palette: {
+          mode: darkMode ? 'dark' : 'light',
           primary: {
-            main: themeColor[900]
+            main: darkMode ? themeColor[600] : themeColor[700],
+            contrastText: "#fff"
           },
           secondary: {
-            main: themeColor[600]
-          }
+            main: darkMode ? themeColor[400] : themeColor[600],
+            contrastText: "#fff"
+          },
+          contrastThreshold: 3,
+          tonalOffset: 0.2,
         },
       }),
-    [],
+    [darkMode],
   )
 
   const [tabIndex, setTabIndex] = useState(0)
@@ -46,7 +55,7 @@ export default function App() {
   return (
     <ThemeProvider theme={GlobalTheme}>
       <SnackbarProvider maxSnack={3} dense>
-        <Container disableGutters
+        <Container disableGutters maxWidth={false}
           sx={{
             position: 'relative',
             '::before': {
@@ -55,12 +64,12 @@ export default function App() {
               top: 14,
               left: 20,
               fontSize: 16,
-              color: 'rgba(0, 0, 0, 0.1)',
+              color: 'rgba(0, 0, 0, 0.3)',
               pointerEvents: 'none',
             },
           }}
         >
-          <Container sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Container sx={{ borderBottom: 1, borderColor: 'divider' }} disableGutters maxWidth={false}>
             <Tabs value={tabIndex} onChange={switchTab} centered>
               {tabList.map((data: any, index: number) => {
                 return (
