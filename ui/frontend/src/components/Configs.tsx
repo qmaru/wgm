@@ -378,9 +378,9 @@ export default function Configs() {
                     return (
                       <Box key={"peer" + index}>
                         <Stack
-                          direction="row"
-                          justifyContent="space-between"
-                          alignItems="center"
+                        direction="row"
+                        justifyContent="space-between"
+                        alignItems="center"
                         >
                           <Box>
                             <FormControlLabel
@@ -399,10 +399,11 @@ export default function Configs() {
                             <FormControl sx={{ width: 400 }}>
                               <InputLabel>路由规则</InputLabel>
                               <Select
+                                label="路由规则"
                                 multiple
                                 value={routeNodes[peer.id.toString()] || []}
                                 onChange={(event) => RouteNodesChange(event, peer.id.toString())}
-                                input={<OutlinedInput label="Chip" />}
+                                input={<OutlinedInput label="路由规则" />}
                                 renderValue={(selected) => (
                                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                                     {selected.map((value: any) => (
