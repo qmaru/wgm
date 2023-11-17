@@ -298,7 +298,7 @@ export default function Configs() {
         return peer.username + " " + peer.private_addr
       }
     }
-    return ""
+    return "请选择接口"
   }
 
   const SelectedPeers = () => {
@@ -315,7 +315,11 @@ export default function Configs() {
         }
       }
     }
-    return peers.join(" / ")
+
+    if (peers.length === 0) {
+      return ["请选择端点"]
+    }
+    return peers
   }
 
   useEffect(() => {
@@ -381,14 +385,26 @@ export default function Configs() {
           }
         </Box>
 
-        <Box sx={{ pt: 2, userSelect: "none" }}>
-          <Typography variant="subtitle2">
-            <b>本地接口</b> {SelectedInterface()}
-          </Typography>
-          <Typography variant="subtitle2">
-            <b>远程端点</b> {SelectedPeers()}
-          </Typography>
-        </Box>
+        <Stack spacing={1} sx={{ pt: 2, userSelect: "none" }}>
+          <Box>
+            <Button variant="outlined" size="small" color='success'>本地接口</Button>
+            <Box component="span" sx={{ pl: 1 }}>
+              <Chip label={SelectedInterface()} color="success" variant="outlined" />
+            </Box>
+          </Box>
+          <Box sx={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "nowrap" }}>
+            <Button variant="outlined" size="small" color='success'>远程端点</Button>
+            <Box component="span">
+              {SelectedPeers().map((peer: any, index: number) => {
+                return (
+                  <Box key={"peer" + index} component="span">
+                    <Chip sx={{ m: 1 }} label={peer} color="success" variant="outlined" />
+                  </Box>
+                )
+              })}
+            </Box>
+          </Box>
+        </Stack>
       </Container>
 
       <Container key={"Peers-Step-Option"}

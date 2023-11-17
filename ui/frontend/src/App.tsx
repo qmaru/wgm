@@ -59,12 +59,12 @@ export default function App() {
           sx={{
             position: 'relative',
             '::before': {
-              content: `'${window.version}'`,
+              content: `'v${window.version}'`,
               position: 'absolute',
               top: 14,
               left: 20,
               fontSize: 16,
-              color: 'rgba(0, 0, 0, 0.3)',
+              color: 'rgba(0, 0, 0, 0.7)',
               pointerEvents: 'none',
             },
           }}
