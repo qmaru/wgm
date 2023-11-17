@@ -460,7 +460,7 @@ export default function Peers() {
   }, [UserList])
 
   return (
-    <Container key="Peer-Main" disableGutters maxWidth={false}>
+    <Container key="Peer-Main" maxWidth={false}>
       <Container key="Peer-Control" disableGutters maxWidth={false}
         sx={{
           padding: 4,
@@ -472,7 +472,7 @@ export default function Peers() {
       </Container>
 
       <Container key="Peer-List"
-        sx={{ paddingBottom: 4 }}
+        sx={{ paddingBottom: 4, maxWidth: 800 }}
       >
         <Stack
           spacing={{ xs: 2, sm: 2 }}

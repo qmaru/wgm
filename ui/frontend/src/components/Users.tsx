@@ -186,7 +186,7 @@ export default function Users() {
   }, [UserList, manualRender])
 
   return (
-    <Container key={"Users-Main"} disableGutters maxWidth={false}>
+    <Container key={"Users-Main"} maxWidth={false}>
       <Container key={"Users-Control"} disableGutters maxWidth={false}
         sx={{
           padding: 4,
@@ -205,7 +205,9 @@ export default function Users() {
         </Stack>
       </Container>
 
-      <Container key={"Users-List"} sx={{ paddingBottom: 4 }} >
+      <Container key={"Users-List"} disableGutters
+        sx={{ paddingBottom: 4, maxWidth: 800 }}
+      >
         <Stack
           spacing={{ xs: 2, sm: 2 }}
           direction="row"

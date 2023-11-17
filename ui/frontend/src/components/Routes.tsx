@@ -185,7 +185,7 @@ export default function Routes() {
   }, [RouteList, manualRender])
 
   return (
-    <Container key={"Routes-Main"} disableGutters maxWidth={false}>
+    <Container key={"Routes-Main"} maxWidth={false}>
       <Container key={"Routes-Control"} disableGutters maxWidth={false}
         sx={{
           padding: 4,
@@ -204,7 +204,9 @@ export default function Routes() {
         </Stack>
       </Container>
 
-      <Container key={"Routes-List"} sx={{ maxWidth: 800, paddingBottom: 4 }}>
+      <Container key={"Routes-List"} disableGutters
+        sx={{ paddingBottom: 4, maxWidth: 800 }}
+      >
         <Stack
           spacing={{ xs: 2, sm: 2 }}
           direction="row"
@@ -222,7 +224,7 @@ export default function Routes() {
               contentStyle={{
                 display: "flex",
                 alignItems: "center",
-                minWidth: 140,
+                minWidth: 150,
               }}
               onEdit={() => RouteUpdateOpen(data)}
               onDelete={() => RouteDeleteOpen(data)}

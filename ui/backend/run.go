@@ -19,6 +19,8 @@ func Run(assets embed.FS) error {
 		Width:         1280,
 		Height:        720,
 		DisableResize: false,
+		MinWidth:      1024,
+		MinHeight:     576,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

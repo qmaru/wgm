@@ -291,16 +291,47 @@ export default function Configs() {
       })
   }
 
+  const SelectedInterface = () => {
+    for (let i in peerData) {
+      const peer = peerData[i]
+      if (peer.id.toString() === interfaceNode) {
+        return peer.username + " " + peer.private_addr
+      }
+    }
+    return ""
+  }
+
+  const SelectedPeers = () => {
+    let peers: any = []
+    for (let i in peerNodes) {
+      const peer_id = i
+      const peer_checked = peerNodes[peer_id]
+      if (peer_checked) {
+        for (let i in peerData) {
+          const peer = peerData[i]
+          if (peer.id.toString() === peer_id) {
+            peers.push(peer.username + " " + peer.private_addr)
+          }
+        }
+      }
+    }
+    return peers.join(" / ")
+  }
+
   useEffect(() => {
     PeerDataList()
   }, [PeerDataList])
 
   return (
-    <Container key={"Peers-Main"} disableGutters maxWidth={false}>
-
-      <Container key={"Peers-Stepper"}
-        sx={{ p: 4 }}
-      >
+    <Container key={"Peers-Main"} disableGutters maxWidth={false}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "90vh"
+      }}
+    >
+      <Container key={"Peers-Stepper"} sx={{ pt: 4, pb: 2 }}>
         <Stepper activeStep={activeStep}>
           {steps.map((step: any, index: number) => {
             return (
@@ -310,46 +341,66 @@ export default function Configs() {
             )
           })}
         </Stepper>
+
+        <Box sx={{ pt: 4 }}>
+          {activeStep === steps.length ?
+            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+              <Button
+                color="error"
+                variant="contained"
+                onClick={StepReset}>
+                重置
+              </Button>
+              <Box sx={{ flex: '1 1 auto' }} />
+
+              <Button
+                variant="contained"
+                color='success'
+                onClick={() => CopyConfig()}
+              >
+                {copyOpen ? "已复制" : "复制"}
+              </Button>
+            </Box>
+            :
+            <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+              <Button
+                variant="contained"
+                disabled={activeStep === 0}
+                onClick={StepBack}
+              >
+                上一步
+              </Button>
+              <Box sx={{ flex: '1 1 auto' }} />
+              <Button
+                variant="contained"
+                onClick={activeStep === 1 ? ConfigOut : StepNext}
+              >
+                {activeStep === steps.length - 1 ? '完成' : '下一步'}
+              </Button>
+            </Box>
+          }
+        </Box>
+
+        <Box sx={{ pt: 2, userSelect: "none" }}>
+          <Typography variant="subtitle2">
+            <b>本地接口</b> {SelectedInterface()}
+          </Typography>
+          <Typography variant="subtitle2">
+            <b>远程端点</b> {SelectedPeers()}
+          </Typography>
+        </Box>
       </Container>
 
-      <Container key={"Peers-Step-Main"} sx={{ pb: 4 }}>
-        {activeStep === steps.length ?
-          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            <Button
-              color="error"
-              variant="contained"
-              onClick={StepReset}>
-              重置
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-
-            <Button
-              variant="contained"
-              color='success'
-              onClick={() => CopyConfig()}
-            >
-              {copyOpen ? "已复制" : "复制"}
-            </Button>
-          </Box>
-          :
-          <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            <Button
-              variant="contained"
-              disabled={activeStep === 0}
-              onClick={StepBack}
-            >
-              上一步
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button
-              variant="contained"
-              onClick={activeStep === 1 ? ConfigOut : StepNext}
-            >
-              {activeStep === steps.length - 1 ? '完成' : '下一步'}
-            </Button>
-          </Box>
-        }
-        <Box sx={{ paddingTop: 3 }}>
+      <Container key={"Peers-Step-Option"}
+        sx=
+        {{
+          pb: 4,
+          flex: 1,
+          width: "100%",
+          overflow: "auto",
+        }}
+      >
+        <Box>
           {activeStep === 0 ?
             <FormControl>
               <FormLabel sx={{ paddingBottom: 1 }}>选择<b>本地</b>接口 Interface</FormLabel>
@@ -378,15 +429,16 @@ export default function Configs() {
                     return (
                       <Box key={"peer" + index}>
                         <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="center"
+                          direction="row"
+                          justifyContent="space-between"
+                          alignItems="center"
                         >
                           <Box>
                             <FormControlLabel
                               label={InterfaceOption(peer)}
                               control={
                                 <Checkbox
+                                  disabled={peer.id.toString() === interfaceNode}
                                   name={peer.id.toString()}
                                   color={peer.public_addr === "" ? "primary" : "secondary"}
                                   onChange={PeerNodesChange}
@@ -396,7 +448,7 @@ export default function Configs() {
                           </Box>
 
                           <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
-                            <FormControl sx={{ width: 400 }}>
+                            <FormControl sx={{ width: 400 }} disabled={peer.id.toString() === interfaceNode}>
                               <InputLabel>路由规则</InputLabel>
                               <Select
                                 label="路由规则"
@@ -484,6 +536,6 @@ export default function Configs() {
         </DialogContent>
       </Dialog >
 
-    </Container>
+    </Container >
   )
 }
