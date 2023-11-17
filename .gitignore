@@ -15,7 +15,7 @@ ui/frontend/npm-debug.log*
 ui/frontend/yarn-debug.log*
 ui/frontend/yarn-error.log*
 ui/frontend/.yarn/cache
-ui/build/bin
+build/bin
 # Binaries for programs and plugins
 *.exe
 *.exe~

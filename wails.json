@@ -2,7 +2,7 @@
   "$schema": "https://wails.io/schemas/config.v2.json",
   "name": "wgm",
   "outputfilename": "wgm",
-  "build:dir": "ui/build",
+  "build:dir": "build",
   "frontend:dir": "ui/frontend",
   "frontend:install": "pnpm install",
   "frontend:build": "pnpm build",
