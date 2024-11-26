@@ -1,24 +1,12 @@
 package utils
 
 import (
-	"github.com/qmaru/minitools"
+	"github.com/qmaru/minitools/v2/file"
 )
 
-// AESSuite 初始化
-var AESSuite *minitools.AESSuiteBasic
-
-// DataSuite 初始化
-var DataSuite *minitools.DataSuiteBasic
-
 // FileSuite 初始化
-var FileSuite *minitools.FileSuiteBasic
-
-// TimeSuite 初始化
-var TimeSuite *minitools.TimeSuiteBasic
+var FileSuite *file.FileSuiteBasic
 
 func init() {
-	AESSuite = minitools.AESSuite()
-	DataSuite = minitools.DataSuite()
-	FileSuite = minitools.FileSuite()
-	TimeSuite = minitools.TimeSuite()
+	FileSuite = file.New()
 }
