@@ -4,28 +4,28 @@ import {models} from '../models';
 
 export function ClipboardText(arg1:string):Promise<boolean>;
 
-export function DataListAPI():Promise<{[key: string]: any}>;
+export function DataListAPI():Promise<Record<string, any>>;
 
-export function PeerAddAPI(arg1:models.Peers):Promise<{[key: string]: any}>;
+export function PeerAddAPI(arg1:models.Peers):Promise<Record<string, any>>;
 
-export function PeerDeleteAPI(arg1:string):Promise<{[key: string]: any}>;
+export function PeerDeleteAPI(arg1:string):Promise<Record<string, any>>;
 
-export function PeerListAPI():Promise<{[key: string]: any}>;
+export function PeerListAPI():Promise<Record<string, any>>;
 
-export function PeerUpdateAPI(arg1:string,arg2:models.Peers):Promise<{[key: string]: any}>;
+export function PeerUpdateAPI(arg1:string,arg2:models.Peers):Promise<Record<string, any>>;
 
-export function RouteAddAPI(arg1:models.Routes):Promise<{[key: string]: any}>;
+export function RouteAddAPI(arg1:models.Routes):Promise<Record<string, any>>;
 
-export function RouteDeleteAPI(arg1:string):Promise<{[key: string]: any}>;
+export function RouteDeleteAPI(arg1:string):Promise<Record<string, any>>;
 
-export function RouteListAPI():Promise<{[key: string]: any}>;
+export function RouteListAPI():Promise<Record<string, any>>;
 
-export function RouteUpdateAPI(arg1:string,arg2:models.Routes):Promise<{[key: string]: any}>;
+export function RouteUpdateAPI(arg1:string,arg2:models.Routes):Promise<Record<string, any>>;
 
-export function UserAddAPI(arg1:models.Users):Promise<{[key: string]: any}>;
+export function UserAddAPI(arg1:models.Users):Promise<Record<string, any>>;
 
-export function UserDeleteAPI(arg1:string):Promise<{[key: string]: any}>;
+export function UserDeleteAPI(arg1:string):Promise<Record<string, any>>;
 
-export function UserListAPI():Promise<{[key: string]: any}>;
+export function UserListAPI():Promise<Record<string, any>>;
 
-export function UserUpdateAPI(arg1:string,arg2:models.Users):Promise<{[key: string]: any}>;
+export function UserUpdateAPI(arg1:string,arg2:models.Users):Promise<Record<string, any>>;

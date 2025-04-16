@@ -19,6 +19,6 @@ window.messageDefault = {
 
 // API 地址
 window.api = "http://127.0.0.1:30000/api/v1"
-window.version = "20241126"
+window.version = "20250406"
 
 export { }

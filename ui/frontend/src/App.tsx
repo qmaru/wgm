@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 
 import { createTheme, ThemeProvider } from '@mui/material/styles'
-import themeColor from '@mui/material/colors/indigo'
+import { indigo as themeColor } from '@mui/material/colors'
 import { SnackbarProvider } from 'notistack'
 import useMediaQuery from '@mui/material/useMediaQuery'
 
