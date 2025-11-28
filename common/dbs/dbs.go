@@ -15,7 +15,7 @@ const (
 	PeerTable  string = "peers"
 )
 
-var Sqlite *sqlitep.Sqlitep
+var Sqlite *sqlitep.Sqlite
 
 func init() {
 	db, err := configs.DatabaseConfig()
