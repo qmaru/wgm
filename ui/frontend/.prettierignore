@@ -1,0 +1,5 @@
+*.json
+*.jsonc
+*.html
+wailsjs/*
+*.md

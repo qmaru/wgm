@@ -1,23 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react"
 
-import Container from "@mui/material/Container";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Tooltip from "@mui/material/Tooltip";
-import Chip from "@mui/material/Chip";
-import Select from "@mui/material/Select";
-import { useTheme } from "@mui/material/styles";
+import Container from "@mui/material/Container"
+import Button from "@mui/material/Button"
+import TextField from "@mui/material/TextField"
+import Stack from "@mui/material/Stack"
+import Typography from "@mui/material/Typography"
+import Dialog from "@mui/material/Dialog"
+import DialogActions from "@mui/material/DialogActions"
+import DialogContent from "@mui/material/DialogContent"
+import DialogTitle from "@mui/material/DialogTitle"
+import InputLabel from "@mui/material/InputLabel"
+import MenuItem from "@mui/material/MenuItem"
+import FormControl from "@mui/material/FormControl"
+import Tooltip from "@mui/material/Tooltip"
+import Chip from "@mui/material/Chip"
+import Select from "@mui/material/Select"
+import { useTheme } from "@mui/material/styles"
 
-import { useSnackbar } from "notistack";
+import { useSnackbar } from "notistack"
 
 import {
   UserListAPI,
@@ -25,193 +25,193 @@ import {
   PeerAddAPI,
   PeerUpdateAPI,
   PeerDeleteAPI,
-} from "../../wailsjs/go/backend/App";
-import { MyCard } from "./common";
+} from "../../wailsjs/go/backend/App"
+import { MyCard } from "./common"
 
 export default function Peers() {
-  const theme = useTheme();
+  const theme = useTheme()
 
-  const { enqueueSnackbar } = useSnackbar();
-  const [manualRender, setManualRender] = useState<boolean>(false);
+  const { enqueueSnackbar } = useSnackbar()
+  const [manualRender, setManualRender] = useState<boolean>(false)
 
-  const [userData, setUserData] = useState<any>([]);
-  const [peerData, setPeerData] = useState<any>([]);
+  const [userData, setUserData] = useState<any>([])
+  const [peerData, setPeerData] = useState<any>([])
 
-  const [peerAddOpen, setPeerAddOpen] = useState<boolean>(false);
-  const [peerAddUser, setPeerAddUser] = useState<string>("");
-  const [peerAddPublic, setPeerAddPublic] = useState<string>("");
-  const [peerAddPrivate, setPeerAddPrivate] = useState<string>("");
-  const [peerAddPort, setPeerAddPort] = useState<number>(0);
-  const [peerAddAllowedIP, setPeerAddAllowedIP] = useState<string>("");
-  const [peerAddMtu, setPeerAddMtu] = useState<number>(0);
-  const [peerAddDns, setPeerAddDns] = useState<string>("");
-  const [peerAddKeepalive, setPeerAddKeepalive] = useState<number>(0);
+  const [peerAddOpen, setPeerAddOpen] = useState<boolean>(false)
+  const [peerAddUser, setPeerAddUser] = useState<string>("")
+  const [peerAddPublic, setPeerAddPublic] = useState<string>("")
+  const [peerAddPrivate, setPeerAddPrivate] = useState<string>("")
+  const [peerAddPort, setPeerAddPort] = useState<number>(0)
+  const [peerAddAllowedIP, setPeerAddAllowedIP] = useState<string>("")
+  const [peerAddMtu, setPeerAddMtu] = useState<number>(0)
+  const [peerAddDns, setPeerAddDns] = useState<string>("")
+  const [peerAddKeepalive, setPeerAddKeepalive] = useState<number>(0)
 
-  const [peerUpdateOpen, setPeerUpdateOpen] = useState<boolean>(false);
-  const [peerUpdateID, setPeerUpdateID] = useState<number>(0);
-  const [peerUpdateUser, setPeerUpdateUser] = useState<string>("");
-  const [peerUpdatePublic, setPeerUpdatePublic] = useState<string>("");
-  const [peerUpdatePrivate, setPeerUpdatePrivate] = useState<string>("");
-  const [peerUpdatePort, setPeerUpdatePort] = useState<number>(0);
-  const [peerUpdateAllowedIP, setPeerUpdateAllowedIP] = useState<string>("");
-  const [peerUpdateMtu, setPeerUpdateMtu] = useState<number>(0);
-  const [peerUpdateDns, setPeerUpdateDns] = useState<string>("");
-  const [peerUpdateKeepalive, setPeerUpdateKeepalive] = useState<number>(0);
+  const [peerUpdateOpen, setPeerUpdateOpen] = useState<boolean>(false)
+  const [peerUpdateID, setPeerUpdateID] = useState<number>(0)
+  const [peerUpdateUser, setPeerUpdateUser] = useState<string>("")
+  const [peerUpdatePublic, setPeerUpdatePublic] = useState<string>("")
+  const [peerUpdatePrivate, setPeerUpdatePrivate] = useState<string>("")
+  const [peerUpdatePort, setPeerUpdatePort] = useState<number>(0)
+  const [peerUpdateAllowedIP, setPeerUpdateAllowedIP] = useState<string>("")
+  const [peerUpdateMtu, setPeerUpdateMtu] = useState<number>(0)
+  const [peerUpdateDns, setPeerUpdateDns] = useState<string>("")
+  const [peerUpdateKeepalive, setPeerUpdateKeepalive] = useState<number>(0)
 
-  const [peerDeleteOpen, setPeerDeleteOpen] = useState<boolean>(false);
-  const [peerDeleteID, setPeerDeleteID] = useState<number>(0);
+  const [peerDeleteOpen, setPeerDeleteOpen] = useState<boolean>(false)
+  const [peerDeleteID, setPeerDeleteID] = useState<number>(0)
 
   const PeerAddOpen = () => {
-    setPeerAddUser("");
-    setPeerAddPublic("");
-    setPeerAddPrivate("");
-    setPeerAddPort(0);
-    setPeerAddAllowedIP("");
-    setPeerAddMtu(0);
-    setPeerAddDns("");
-    setPeerAddKeepalive(0);
-    setPeerAddOpen(true);
-  };
+    setPeerAddUser("")
+    setPeerAddPublic("")
+    setPeerAddPrivate("")
+    setPeerAddPort(0)
+    setPeerAddAllowedIP("")
+    setPeerAddMtu(0)
+    setPeerAddDns("")
+    setPeerAddKeepalive(0)
+    setPeerAddOpen(true)
+  }
 
   const PeerAddClose = () => {
-    setPeerAddOpen(false);
-  };
+    setPeerAddOpen(false)
+  }
 
   const PeerUpdateOpen = (peer_data: any) => {
-    setPeerUpdateID(peer_data.id);
-    setPeerUpdateUser(peer_data.username);
-    setPeerUpdatePublic(peer_data.public_addr);
-    setPeerUpdatePrivate(peer_data.private_addr);
-    setPeerUpdatePort(peer_data.port);
-    setPeerUpdateAllowedIP(peer_data.allowed_ips);
-    setPeerUpdateMtu(peer_data.mtu);
-    setPeerUpdateDns(peer_data.dns);
-    setPeerUpdateKeepalive(peer_data.keepalive);
-    setPeerUpdateOpen(true);
-  };
+    setPeerUpdateID(peer_data.id)
+    setPeerUpdateUser(peer_data.username)
+    setPeerUpdatePublic(peer_data.public_addr)
+    setPeerUpdatePrivate(peer_data.private_addr)
+    setPeerUpdatePort(peer_data.port)
+    setPeerUpdateAllowedIP(peer_data.allowed_ips)
+    setPeerUpdateMtu(peer_data.mtu)
+    setPeerUpdateDns(peer_data.dns)
+    setPeerUpdateKeepalive(peer_data.keepalive)
+    setPeerUpdateOpen(true)
+  }
 
   const PeerUpdateClose = () => {
-    setPeerUpdateOpen(false);
-  };
+    setPeerUpdateOpen(false)
+  }
 
   const PeerDeleteOpen = (peer_data: any) => {
-    setPeerDeleteID(peer_data.id);
-    setPeerDeleteOpen(true);
-  };
+    setPeerDeleteID(peer_data.id)
+    setPeerDeleteOpen(true)
+  }
 
   const PeerDeleteClose = () => {
-    setPeerDeleteOpen(false);
-  };
+    setPeerDeleteOpen(false)
+  }
 
   const PeerAddUserChange = (event: any) => {
-    setPeerAddUser(event.target.value);
-  };
+    setPeerAddUser(event.target.value)
+  }
 
   const PeerAddPublicChange = (event: any) => {
-    setPeerAddPublic(event.target.value);
-  };
+    setPeerAddPublic(event.target.value)
+  }
 
   const PeerAddPrivateChange = (event: any) => {
-    setPeerAddPrivate(event.target.value);
-  };
+    setPeerAddPrivate(event.target.value)
+  }
 
   const PeerAddPortChange = (event: any) => {
-    setPeerAddPort(event.target.value);
-  };
+    setPeerAddPort(event.target.value)
+  }
 
   const PeerAddAllowedIPChange = (event: any) => {
-    setPeerAddAllowedIP(event.target.value);
-  };
+    setPeerAddAllowedIP(event.target.value)
+  }
 
   const PeerAddMtuChange = (event: any) => {
-    setPeerAddMtu(event.target.value);
-  };
+    setPeerAddMtu(event.target.value)
+  }
 
   const PeerAddDnsChange = (event: any) => {
-    setPeerAddDns(event.target.value);
-  };
+    setPeerAddDns(event.target.value)
+  }
 
   const PeerAddKeepaliveChange = (event: any) => {
-    setPeerAddKeepalive(event.target.value);
-  };
+    setPeerAddKeepalive(event.target.value)
+  }
 
   const PeerUpdatePublicChange = (event: any) => {
-    setPeerUpdatePublic(event.target.value);
-  };
+    setPeerUpdatePublic(event.target.value)
+  }
 
   const PeerUpdatePrivateChange = (event: any) => {
-    setPeerUpdatePrivate(event.target.value);
-  };
+    setPeerUpdatePrivate(event.target.value)
+  }
 
   const PeerUpdatePortChange = (event: any) => {
-    setPeerUpdatePort(event.target.value);
-  };
+    setPeerUpdatePort(event.target.value)
+  }
 
   const PeerUpdateAllowedIPChange = (event: any) => {
-    setPeerUpdateAllowedIP(event.target.value);
-  };
+    setPeerUpdateAllowedIP(event.target.value)
+  }
 
   const PeerUpdateMtuChange = (event: any) => {
-    setPeerUpdateMtu(event.target.value);
-  };
+    setPeerUpdateMtu(event.target.value)
+  }
 
   const PeerUpdateDnsChange = (event: any) => {
-    setPeerUpdateDns(event.target.value);
-  };
+    setPeerUpdateDns(event.target.value)
+  }
 
   const PeerUpdateKeepaliveChange = (event: any) => {
-    setPeerUpdateKeepalive(event.target.value);
-  };
+    setPeerUpdateKeepalive(event.target.value)
+  }
 
   const PeerAdd = () => {
     if (peerAddUser === "") {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请选择用户", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请选择用户", window.messageDefault)
+      return false
     }
 
     var regex =
-      /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+      /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
     if (peerAddPrivate === "") {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入内网地址", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入内网地址", window.messageDefault)
+      return false
     } else if (!regex.test(peerAddPrivate)) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的IP地址", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的IP地址", window.messageDefault)
+      return false
     }
 
     if (peerAddPublic !== "" && peerAddPort === 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入公网地址和端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入公网地址和端口", window.messageDefault)
+      return false
     }
 
     if (peerAddPublic === "" && peerAddPort !== 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入公网地址和端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入公网地址和端口", window.messageDefault)
+      return false
     }
 
     if (peerAddPort > 65535 || peerAddPort < 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的端口", window.messageDefault)
+      return false
     }
 
     if (peerAddMtu !== 0) {
       if (peerAddMtu > 1518 || peerAddMtu < 64) {
-        window.messageDefault.variant = "warning";
-        enqueueSnackbar("请输入正确的MTU", window.messageDefault);
-        return false;
+        window.messageDefault.variant = "warning"
+        enqueueSnackbar("请输入正确的MTU", window.messageDefault)
+        return false
       }
     }
 
     if (peerAddKeepalive < 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的Keepalive", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的Keepalive", window.messageDefault)
+      return false
     }
 
     let body: any = {
@@ -223,70 +223,70 @@ export default function Peers() {
       mtu: Number(peerAddMtu),
       dns: peerAddDns,
       keepalive: Number(peerAddKeepalive),
-    };
+    }
 
     PeerAddAPI(body)
       .then((response) => {
-        let status = response.status;
+        let status = response.status
         if (status === 1) {
-          setManualRender(!manualRender);
-          window.messageDefault.variant = "success";
-          enqueueSnackbar("节点添加成功", window.messageDefault);
-          setPeerAddOpen(false);
+          setManualRender(!manualRender)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar("节点添加成功", window.messageDefault)
+          setPeerAddOpen(false)
         } else {
-          window.messageDefault.variant = "error";
-          enqueueSnackbar(response.message, window.messageDefault);
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(response.message, window.messageDefault)
         }
       })
       .catch(() => {
-        window.messageDefault.variant = "error";
-        enqueueSnackbar("节点数据增加失败", window.messageDefault);
-      });
-  };
+        window.messageDefault.variant = "error"
+        enqueueSnackbar("节点数据增加失败", window.messageDefault)
+      })
+  }
 
   const PeerUpdate = () => {
     var regex =
-      /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+      /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
     if (peerUpdatePrivate === "") {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入内网地址", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入内网地址", window.messageDefault)
+      return false
     } else if (!regex.test(peerUpdatePrivate)) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的IP地址", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的IP地址", window.messageDefault)
+      return false
     }
 
     if (peerUpdatePublic !== "" && peerUpdatePort === 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入公网地址和端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入公网地址和端口", window.messageDefault)
+      return false
     }
 
     if (peerUpdatePublic === "" && peerUpdatePort !== 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入公网地址和端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入公网地址和端口", window.messageDefault)
+      return false
     }
 
     if (peerUpdatePort > 65535 || peerUpdatePort < 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的端口", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的端口", window.messageDefault)
+      return false
     }
 
     if (peerUpdateMtu !== 0) {
       if (peerUpdateMtu > 1518 || peerUpdateMtu < 64) {
-        window.messageDefault.variant = "warning";
-        enqueueSnackbar("请输入正确的MTU", window.messageDefault);
-        return false;
+        window.messageDefault.variant = "warning"
+        enqueueSnackbar("请输入正确的MTU", window.messageDefault)
+        return false
       }
     }
 
     if (peerUpdateKeepalive < 0) {
-      window.messageDefault.variant = "warning";
-      enqueueSnackbar("请输入正确的Keepalive", window.messageDefault);
-      return false;
+      window.messageDefault.variant = "warning"
+      enqueueSnackbar("请输入正确的Keepalive", window.messageDefault)
+      return false
     }
 
     let body: any = {
@@ -297,84 +297,84 @@ export default function Peers() {
       mtu: Number(peerUpdateMtu),
       dns: peerUpdateDns,
       keepalive: Number(peerUpdateKeepalive),
-    };
+    }
 
     PeerUpdateAPI(String(peerUpdateID), body)
       .then((response) => {
-        let status = response.status;
+        let status = response.status
         if (status === 1) {
-          setManualRender(!manualRender);
-          setPeerUpdateOpen(false);
-          window.messageDefault.variant = "success";
-          enqueueSnackbar("节点修改成功", window.messageDefault);
+          setManualRender(!manualRender)
+          setPeerUpdateOpen(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar("节点修改成功", window.messageDefault)
         } else {
-          window.messageDefault.variant = "error";
-          enqueueSnackbar(response.message, window.messageDefault);
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(response.message, window.messageDefault)
         }
       })
       .catch(() => {
-        window.messageDefault.variant = "error";
-        enqueueSnackbar("节点数据载入失败", window.messageDefault);
-      });
-  };
+        window.messageDefault.variant = "error"
+        enqueueSnackbar("节点数据载入失败", window.messageDefault)
+      })
+  }
 
   const PeerDelete = () => {
     PeerDeleteAPI(String(peerDeleteID))
       .then((response) => {
-        let status = response.status;
+        let status = response.status
         if (status === 1) {
-          setManualRender(!manualRender);
-          setPeerDeleteOpen(false);
-          window.messageDefault.variant = "success";
-          enqueueSnackbar(response.message, window.messageDefault);
+          setManualRender(!manualRender)
+          setPeerDeleteOpen(false)
+          window.messageDefault.variant = "success"
+          enqueueSnackbar(response.message, window.messageDefault)
         } else {
-          window.messageDefault.variant = "error";
-          enqueueSnackbar(response.message, window.messageDefault);
+          window.messageDefault.variant = "error"
+          enqueueSnackbar(response.message, window.messageDefault)
         }
       })
       .catch(() => {
-        window.messageDefault.variant = "error";
-        enqueueSnackbar("路由数据载入失败", window.messageDefault);
-      });
-  };
+        window.messageDefault.variant = "error"
+        enqueueSnackbar("路由数据载入失败", window.messageDefault)
+      })
+  }
 
   const PeerList = useCallback(() => {
     PeerListAPI()
       .then((response) => {
-        let status = response.status;
+        let status = response.status
         if (status === 1) {
-          let data = response.data;
-          setPeerData(data);
+          let data = response.data
+          setPeerData(data)
         }
       })
       .catch(() => {
-        window.messageDefault.variant = "error";
-        enqueueSnackbar("节点数据载入失败", window.messageDefault);
-      });
-  }, [enqueueSnackbar]);
+        window.messageDefault.variant = "error"
+        enqueueSnackbar("节点数据载入失败", window.messageDefault)
+      })
+  }, [enqueueSnackbar])
 
   const UserList = useCallback(() => {
     UserListAPI()
       .then((response) => {
-        let status = response.status;
+        let status = response.status
         if (status === 1) {
-          let data = response.data;
-          setUserData(data);
+          let data = response.data
+          setUserData(data)
         }
       })
       .catch(() => {
-        window.messageDefault.variant = "error";
-        enqueueSnackbar("用户数据载入失败", window.messageDefault);
-      });
-  }, [enqueueSnackbar]);
+        window.messageDefault.variant = "error"
+        enqueueSnackbar("用户数据载入失败", window.messageDefault)
+      })
+  }, [enqueueSnackbar])
 
   useEffect(() => {
-    PeerList();
-  }, [PeerList, manualRender]);
+    PeerList()
+  }, [PeerList, manualRender])
 
   useEffect(() => {
-    UserList();
-  }, [UserList]);
+    UserList()
+  }, [UserList])
 
   return (
     <Container key="Peer-Main" maxWidth={false}>
@@ -493,7 +493,7 @@ export default function Peers() {
                     <MenuItem key={"user" + index} value={user.id}>
                       {user.username}
                     </MenuItem>
-                  );
+                  )
                 })}
               </Select>
             </FormControl>
@@ -630,5 +630,5 @@ export default function Peers() {
         </DialogActions>
       </Dialog>
     </Container>
-  );
+  )
 }

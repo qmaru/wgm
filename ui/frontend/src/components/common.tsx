@@ -1,12 +1,12 @@
-import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
-import CardContent from "@mui/material/CardContent";
-import Divider from "@mui/material/Divider";
-import { useTheme } from "@mui/material/styles";
+import Button from "@mui/material/Button"
+import Card from "@mui/material/Card"
+import CardActions from "@mui/material/CardActions"
+import CardContent from "@mui/material/CardContent"
+import Divider from "@mui/material/Divider"
+import { useTheme } from "@mui/material/styles"
 
 export const MyCard = (props: any) => {
-  const theme = useTheme();
+  const theme = useTheme()
   return (
     <Card variant="outlined" sx={{ borderRadius: 2 }}>
       <CardContent sx={{ backgroundColor: theme.palette.primary.main, p: 0.6 }}></CardContent>
@@ -37,5 +37,5 @@ export const MyCard = (props: any) => {
         </Button>
       </CardActions>
     </Card>
-  );
-};
+  )
+}

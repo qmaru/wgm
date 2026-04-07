@@ -1,8 +1,8 @@
 declare global {
   interface Window {
-    api: string;
-    version: string;
-    messageDefault: any;
+    api: string
+    version: string
+    messageDefault: any
   }
 }
 
@@ -15,10 +15,10 @@ window.messageDefault = {
     vertical: "bottom",
     horizontal: "center",
   },
-};
+}
 
 // API 地址
-window.api = "http://127.0.0.1:30000/api/v1";
-window.version = "20251128";
+window.api = "http://127.0.0.1:30000/api/v1"
+window.version = "20260407"
 
-export {};
+export {}

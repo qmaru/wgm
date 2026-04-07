@@ -1,24 +1,24 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo } from "react"
 
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { indigo as themeColor } from "@mui/material/colors";
-import { SnackbarProvider } from "notistack";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import { createTheme, ThemeProvider } from "@mui/material/styles"
+import { indigo as themeColor } from "@mui/material/colors"
+import { SnackbarProvider } from "notistack"
+import useMediaQuery from "@mui/material/useMediaQuery"
 
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Container from "@mui/material/Container";
+import Tabs from "@mui/material/Tabs"
+import Tab from "@mui/material/Tab"
+import Container from "@mui/material/Container"
 
-import Configs from "./components/Configs";
-import Peers from "./components/Peers";
-import Routes from "./components/Routes";
-import Users from "./components/Users";
+import Configs from "./components/Configs"
+import Peers from "./components/Peers"
+import Routes from "./components/Routes"
+import Users from "./components/Users"
 
-import "./global";
+import "./global"
 
 export default function App() {
-  const prefersDarkMode: boolean = useMediaQuery("(prefers-color-scheme: dark)");
-  const darkMode: boolean = prefersDarkMode;
+  const prefersDarkMode: boolean = useMediaQuery("(prefers-color-scheme: dark)")
+  const darkMode: boolean = prefersDarkMode
 
   var GlobalTheme = useMemo(
     () =>
@@ -38,19 +38,19 @@ export default function App() {
         },
       }),
     [darkMode],
-  );
+  )
 
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(0)
   const switchTab = (event: any, newValue: number) => {
-    setTabIndex(newValue);
-  };
+    setTabIndex(newValue)
+  }
 
   const tabList: any = [
     { label: "配置", comp: <Configs /> },
     { label: "节点", comp: <Peers /> },
     { label: "用户", comp: <Users /> },
     { label: "路由", comp: <Routes /> },
-  ];
+  ]
 
   return (
     <ThemeProvider theme={GlobalTheme}>
@@ -78,7 +78,7 @@ export default function App() {
           >
             <Tabs value={tabIndex} onChange={switchTab} centered>
               {tabList.map((data: any, index: number) => {
-                return <Tab key={"tab-" + index} label={data.label} />;
+                return <Tab key={"tab-" + index} label={data.label} />
               })}
             </Tabs>
           </Container>
@@ -86,5 +86,5 @@ export default function App() {
         </Container>
       </SnackbarProvider>
     </ThemeProvider>
-  );
+  )
 }
