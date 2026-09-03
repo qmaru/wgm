@@ -9,12 +9,22 @@ import { Button } from "@/components/ui"
 
 const steps = ["选择 Interface", "选择 Peers", "确认配置"]
 
+const compareIPv4 = (left: string, right: string) => {
+  const leftParts = left.split(".").map(Number)
+  const rightParts = right.split(".").map(Number)
+  for (let index = 0; index < 4; index += 1) {
+    if (leftParts[index] !== rightParts[index]) return leftParts[index] - rightParts[index]
+  }
+  return 0
+}
+
 export default function Configs() {
   const [step, setStep] = useState(0)
   const [peers, setPeers] = useState<PeerItem[]>([])
   const [routes, setRoutes] = useState<DataList["routes"]>([])
   const [iface, setIface] = useState("")
   const [selected, setSelected] = useState<Record<string, boolean>>({})
+  const [selectedPeerIds, setSelectedPeerIds] = useState<string[]>([])
   const [routeMap, setRouteMap] = useState<Record<string, string[]>>({})
   const [config, setConfig] = useState("")
   const [copied, setCopied] = useState(false)
@@ -26,7 +36,7 @@ export default function Configs() {
         const response = raw as ApiResponse<DataList>
         if (response.status === 1) {
           const sortedPeers = [...response.data.peers].sort((a, b) =>
-            a.private_addr.localeCompare(b.private_addr),
+            compareIPv4(a.private_addr, b.private_addr),
           )
           setPeers(sortedPeers)
           setRoutes(response.data.routes)
@@ -40,7 +50,9 @@ export default function Configs() {
 
   const generate = () => {
     if (!iface) return toast.warning("请选择 Interface")
-    const chosen = peers.filter((peer) => String(peer.id) !== iface && selected[String(peer.id)])
+    const chosen = selectedPeerIds
+      .map((peerId) => peers.find((peer) => String(peer.id) === peerId))
+      .filter((peer): peer is PeerItem => peer !== undefined && String(peer.id) !== iface)
 
     if (!chosen.length) return toast.warning("请选择 Peers")
     const local = peers.find((peer) => String(peer.id) === iface)
@@ -79,6 +91,7 @@ export default function Configs() {
     setStep(0)
     setIface("")
     setSelected({})
+    setSelectedPeerIds([])
     setRouteMap({})
     setConfig("")
     setCopied(false)
@@ -97,7 +110,9 @@ export default function Configs() {
   }
 
   const localPeer = peers.find((peer) => String(peer.id) === iface)
-  const chosenPeers = peers.filter((peer) => String(peer.id) !== iface && selected[String(peer.id)])
+  const chosenPeers = selectedPeerIds
+    .map((peerId) => peers.find((peer) => String(peer.id) === peerId))
+    .filter((peer): peer is PeerItem => peer !== undefined && String(peer.id) !== iface)
   const stepSummary =
     step === 0 ? "选择 Interface" : step === 1 ? "选择 Peers 和路由" : "配置已生成"
 
@@ -184,7 +199,21 @@ export default function Configs() {
                     value={peer.id}
                     checked={iface === String(peer.id)}
                     onChange={(event) => {
-                      setIface(event.target.value)
+                      const nextIface = event.target.value
+                      setIface(nextIface)
+                      setSelected((current) =>
+                        Object.fromEntries(
+                          Object.entries(current).filter(([peerId]) => peerId !== nextIface),
+                        ),
+                      )
+                      setSelectedPeerIds((current) =>
+                        current.filter((peerId) => peerId !== nextIface),
+                      )
+                      setRouteMap((current) =>
+                        Object.fromEntries(
+                          Object.entries(current).filter(([peerId]) => peerId !== nextIface),
+                        ),
+                      )
                     }}
                   />
                   <span className="min-w-0">
@@ -226,10 +255,16 @@ export default function Configs() {
                           type="checkbox"
                           checked={peerSelected}
                           onChange={(event) => {
-                            setSelected((current) => ({
-                              ...current,
-                              [String(peer.id)]: event.target.checked,
-                            }))
+                            const peerId = String(peer.id)
+                            const checked = event.target.checked
+                            setSelected((current) => ({ ...current, [peerId]: checked }))
+                            setSelectedPeerIds((current) =>
+                              checked
+                                ? current.includes(peerId)
+                                  ? current
+                                  : [...current, peerId]
+                                : current.filter((id) => id !== peerId),
+                            )
                           }}
                         />
                         <span className="min-w-0 flex-1">

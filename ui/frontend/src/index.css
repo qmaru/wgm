@@ -88,10 +88,14 @@ body {
 .ui-button:focus-visible,
 .ui-field:focus-visible,
 .ui-select:focus-visible,
-.ui-tab:focus-visible,
 .ui-copyable:focus-visible {
   outline: 0;
   box-shadow: 0 0 0 3px var(--wg-focus);
+}
+
+.ui-tab:focus-visible {
+  outline: 0;
+  box-shadow: none;
 }
 
 .ui-button:disabled {
@@ -351,7 +355,7 @@ body {
 }
 
 .ui-tab[aria-selected="true"] {
-  border-color: var(--wg-accent-strong);
+  border-color: transparent;
   color: var(--wg-accent-strong);
 }
 

@@ -35,12 +35,17 @@ const fields: PeerField[] = [
   ["keepalive", "Keepalive"],
 ]
 const IPV4_PATTERN = /^(\d{1,3}\.){3}\d{1,3}$/
+const HOST_LABEL_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i
 const MAX_PORT = 65535
 const MIN_MTU = 64
 const MAX_MTU = 1518
+const MAX_HOST_LENGTH = 253
 
 const isIPv4 = (value: string) =>
   IPV4_PATTERN.test(value) && value.split(".").every((part) => Number(part) <= 255)
+const isHost = (value: string) =>
+  value.length <= MAX_HOST_LENGTH &&
+  value.split(".").every((label) => HOST_LABEL_PATTERN.test(label))
 
 export default function Peers() {
   const [peers, setPeers] = useState<PeerItem[]>([])
@@ -91,8 +96,8 @@ export default function Peers() {
     if (!editing && !userId) return toast.warning("请选择用户")
     if (!privateAddr) return toast.warning("请输入内网地址")
     if (!isIPv4(privateAddr)) return toast.warning("请输入正确的内网地址")
-    if (publicAddr && !isIPv4(publicAddr)) return toast.warning("请输入正确的公网地址")
-    if ((publicAddr && !port) || (!publicAddr && port)) return toast.warning("请输入公网地址和端口")
+    if (publicAddr && !isHost(publicAddr)) return toast.warning("请输入正确的公网地址或域名")
+    if (publicAddr && !port) return toast.warning("请输入公网地址和端口")
     if (Number(port) > MAX_PORT || Number(port) < 0) return toast.warning("请输入正确的端口")
     if (mtu && (Number(mtu) < MIN_MTU || Number(mtu) > MAX_MTU))
       return toast.warning("请输入正确的MTU")
@@ -154,7 +159,7 @@ export default function Peers() {
       username: peer.username,
       private_addr: peer.private_addr,
       public_addr: peer.public_addr,
-      port: String(peer.port),
+      port: peer.public_addr ? String(peer.port) : "",
       allowed_ips: peer.allowed_ips,
       mtu: String(peer.mtu),
       dns: peer.dns,
@@ -182,12 +187,11 @@ export default function Peers() {
           label={label}
           className="w-full"
           maxLength={
-            key === "private_addr" ||
-            key === "public_addr" ||
-            key === "allowed_ips" ||
-            key === "dns"
-              ? 18
-              : undefined
+            key === "public_addr"
+              ? MAX_HOST_LENGTH
+              : key === "private_addr" || key === "allowed_ips" || key === "dns"
+                ? 18
+                : undefined
           }
           min={key === "mtu" ? 64 : 0}
           max={key === "port" ? MAX_PORT : key === "mtu" ? MAX_MTU : undefined}
