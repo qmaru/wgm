@@ -1,90 +1,29 @@
-import { useState, useMemo } from "react"
+import { useState } from "react"
+import { Toaster } from "sonner"
 
-import { createTheme, ThemeProvider } from "@mui/material/styles"
-import { indigo as themeColor } from "@mui/material/colors"
-import { SnackbarProvider } from "notistack"
-import useMediaQuery from "@mui/material/useMediaQuery"
-
-import Tabs from "@mui/material/Tabs"
-import Tab from "@mui/material/Tab"
-import Container from "@mui/material/Container"
-
-import Configs from "./components/Configs"
-import Peers from "./components/Peers"
-import Routes from "./components/Routes"
-import Users from "./components/Users"
-
-import "./global"
+import Configs from "@/components/Configs"
+import Peers from "@/components/Peers"
+import Routes from "@/components/Routes"
+import Users from "@/components/Users"
+import { Tabs } from "@/components/ui"
 
 export default function App() {
-  const prefersDarkMode: boolean = useMediaQuery("(prefers-color-scheme: dark)")
-  const darkMode: boolean = prefersDarkMode
-
-  var GlobalTheme = useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: darkMode ? "dark" : "light",
-          primary: {
-            main: darkMode ? themeColor[600] : themeColor[700],
-            contrastText: "#fff",
-          },
-          secondary: {
-            main: darkMode ? themeColor[400] : themeColor[600],
-            contrastText: "#fff",
-          },
-          contrastThreshold: 3,
-          tonalOffset: 0.2,
-        },
-      }),
-    [darkMode],
-  )
-
   const [tabIndex, setTabIndex] = useState(0)
-  const switchTab = (event: any, newValue: number) => {
-    setTabIndex(newValue)
-  }
-
-  const tabList: any = [
-    { label: "配置", comp: <Configs /> },
-    { label: "节点", comp: <Peers /> },
-    { label: "用户", comp: <Users /> },
-    { label: "路由", comp: <Routes /> },
-  ]
+  const tabs = ["配置", "节点", "用户", "路由"]
+  const pages = [<Configs />, <Peers />, <Users />, <Routes />]
 
   return (
-    <ThemeProvider theme={GlobalTheme}>
-      <SnackbarProvider maxSnack={3} dense>
-        <Container
-          disableGutters
-          maxWidth={false}
-          sx={{
-            position: "relative",
-            "::before": {
-              content: `'v${window.version}'`,
-              position: "absolute",
-              top: 14,
-              left: 20,
-              fontSize: 16,
-              color: "rgba(0, 0, 0, 0.7)",
-              pointerEvents: "none",
-            },
-          }}
-        >
-          <Container
-            sx={{ borderBottom: 1, borderColor: "divider" }}
-            disableGutters
-            maxWidth={false}
-          >
-            <Tabs value={tabIndex} onChange={switchTab} centered>
-              {tabList.map((data: any, index: number) => {
-                return <Tab key={"tab-" + index} label={data.label} />
-              })}
-            </Tabs>
-          </Container>
-          {tabList[tabIndex].comp}
-        </Container>
-      </SnackbarProvider>
-    </ThemeProvider>
+    <main className="relative flex h-screen flex-col overflow-hidden">
+      <div className="absolute left-5 top-3 text-sm text-slate-500">
+        v{import.meta.env.VITE_APP_VERSION}
+      </div>
+      <div className="shrink-0 bg-[#f8fafc]/95 backdrop-blur dark:bg-[#111827]/95">
+        <Tabs labels={tabs} selected={tabIndex} onChange={setTabIndex} />
+      </div>
+      <div className="app-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {pages[tabIndex]}
+      </div>
+      <Toaster position="bottom-center" duration={2000} richColors />
+    </main>
   )
 }

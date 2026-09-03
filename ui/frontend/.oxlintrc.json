@@ -1,0 +1,28 @@
+{
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "plugins": [
+    "typescript"
+  ],
+  "ignorePatterns": [
+    "wailsjs/**"
+  ],
+  "rules": {
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/no-explicit-any": "off",
+    "typescript/no-unsafe-assignment": "off",
+    "typescript/no-unsafe-argument": "off",
+    "typescript/no-unsafe-call": "off",
+    "typescript/no-unsafe-member-access": "off",
+    "typescript/no-unsafe-return": "off",
+    "typescript/no-base-to-string": "warn",
+    "typescript/no-unnecessary-condition": "off",
+    "typescript/no-unnecessary-type-assertion": "off",
+    "typescript/await-thenable": "warn",
+    "typescript/require-await": "off",
+    "typescript/no-confusing-void-expression": "warn"
+  }
+}

@@ -1,229 +1,216 @@
-import { useState, useEffect, useCallback } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
 
-import Container from "@mui/material/Container"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import TextField from "@mui/material/TextField"
-import Stack from "@mui/material/Stack"
-import Typography from "@mui/material/Typography"
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogTitle from "@mui/material/DialogTitle"
+import { RouteAddAPI, RouteDeleteAPI, RouteListAPI, RouteUpdateAPI } from "@wails/go/backend/App"
+import { models } from "@wails/go/models"
 
-import { useSnackbar } from "notistack"
-
-import {
-  RouteListAPI,
-  RouteAddAPI,
-  RouteUpdateAPI,
-  RouteDeleteAPI,
-} from "../../wailsjs/go/backend/App"
-import { MyCard } from "./common"
+import { ApiResponse, RouteItem } from "@/types"
+import { Button, Card, Dialog, Input } from "@/components/ui"
 
 export default function Routes() {
-  const { enqueueSnackbar } = useSnackbar()
-  const [manualRender, setManualRender] = useState<boolean>(false)
+  const [routes, setRoutes] = useState<RouteItem[]>([])
+  const [cidr, setCidr] = useState("")
+  const [editing, setEditing] = useState<RouteItem | null>(null)
+  const [deleting, setDeleting] = useState<RouteItem | null>(null)
 
-  const [routeData, setRouteData] = useState<any>([])
-
-  const [routeAddCIDR, setRouteAddCIDR] = useState<string>("")
-
-  const [routeUpdateOpen, setRouteUpdateOepn] = useState<boolean>(false)
-  const [routeUpdateID, setRouteUpdateID] = useState<number>(0)
-  const [routeUpdateCIDR, setRouteUpdateCIDR] = useState<string>("")
-
-  const [routeDeleteOpen, setRouteDeleteOepn] = useState<boolean>(false)
-  const [routeDeleteID, setRouteDeleteID] = useState<number>(0)
-
-  const RouteAddChange = (event: any) => {
-    setRouteAddCIDR(event.target.value)
-  }
-
-  const RouteUpdateChange = (event: any) => {
-    setRouteUpdateCIDR(event.target.value)
-  }
-
-  const RouteUpdateOpen = (route_data: any) => {
-    setRouteUpdateOepn(true)
-    setRouteUpdateID(route_data.id)
-    setRouteUpdateCIDR(route_data.cidr)
-  }
-
-  const RouteUpdateClose = () => {
-    setRouteUpdateOepn(false)
-  }
-
-  const RouteDeleteOpen = (route_data: any) => {
-    setRouteDeleteOepn(true)
-    setRouteDeleteID(route_data.id)
-  }
-
-  const RouteDeleteClose = () => {
-    setRouteDeleteOepn(false)
-  }
-
-  const RouteAdd = () => {
-    let body: any = {
-      cidr: routeAddCIDR,
+  const load = useCallback(async (): Promise<void> => {
+    try {
+      const raw = await (RouteListAPI as () => Promise<unknown>)()
+      const response = raw as ApiResponse<RouteItem[]>
+      if (response.status === 1) setRoutes(response.data)
+    } catch {
+      toast.error("路由接口请求失败")
     }
-
-    RouteAddAPI(body)
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-          setRouteAddCIDR("")
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("路由接口请求失败", window.messageDefault)
-      })
-  }
-
-  const RouteUpdate = () => {
-    let body: any = {
-      cidr: routeUpdateCIDR,
-    }
-    RouteUpdateAPI(String(routeUpdateID), body)
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          setRouteUpdateOepn(false)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-          setRouteAddCIDR("")
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("路由接口请求失败", window.messageDefault)
-      })
-  }
-
-  const RouteDelete = () => {
-    RouteDeleteAPI(String(routeDeleteID))
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          setRouteDeleteOepn(false)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("路由接口请求失败", window.messageDefault)
-      })
-  }
-
-  const RouteList = useCallback(() => {
-    RouteListAPI()
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          let data = response.data
-          setRouteData(data)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("路由接口请求失败", window.messageDefault)
-      })
-  }, [enqueueSnackbar])
+  }, [])
 
   useEffect(() => {
-    RouteList()
-  }, [RouteList, manualRender])
+    void load()
+  }, [load])
+
+  const add = async () => {
+    const value = cidr.trim()
+    if (!value) return toast.warning("请输入路由")
+    const body = new models.Routes({ cidr: value })
+    try {
+      const raw = await (RouteAddAPI as (route: models.Routes) => Promise<unknown>)(body)
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setCidr("")
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("路由接口请求失败")
+    }
+  }
+
+  const update = async () => {
+    if (!editing) return
+    const value = editing.cidr.trim()
+    if (!value) return toast.warning("请输入路由")
+    const body = new models.Routes({ id: editing.id, cidr: value })
+    try {
+      const raw = await (RouteUpdateAPI as (id: string, route: models.Routes) => Promise<unknown>)(
+        String(editing.id),
+        body,
+      )
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setEditing(null)
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("路由接口请求失败")
+    }
+  }
+
+  const remove = async () => {
+    if (!deleting) return
+    try {
+      const raw = await (RouteDeleteAPI as (id: string) => Promise<unknown>)(String(deleting.id))
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setDeleting(null)
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("路由接口请求失败")
+    }
+  }
 
   return (
-    <Container key={"Routes-Main"} maxWidth={false}>
-      <Container
-        key={"Routes-Control"}
-        disableGutters
-        maxWidth={false}
-        sx={{
-          padding: 4,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <Stack spacing={2}>
-          <TextField
+    <main className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+      <header className="mb-7 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-700">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-wg-accent-strong">
+            Routing table
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            路由
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">维护可分发到节点的 CIDR 路由规则</p>
+        </div>
+        <span className="ui-count self-start">{routes.length} 条规则</span>
+      </header>
+      <div className="mb-8 w-full xl:w-[calc((100%-3.75rem)/4)] border-b border-dashed border-slate-300 pb-6 dark:border-slate-700">
+        <div className="ui-input-group">
+          <Input
             label="路由"
-            variant="outlined"
-            value={routeAddCIDR}
-            onChange={(event) => RouteAddChange(event)}
+            className="w-full"
+            maxLength={18}
+            value={cidr}
+            onChange={(event) => {
+              setCidr(event.target.value)
+            }}
           />
-          <Button variant="contained" onClick={() => RouteAdd()}>
+          <Button
+            className="ui-input-action whitespace-nowrap"
+            onClick={() => {
+              void add()
+            }}
+          >
             提交
           </Button>
-        </Stack>
-      </Container>
-
-      <Container key={"Routes-List"} disableGutters sx={{ paddingBottom: 4, maxWidth: 800 }}>
-        <Stack
-          spacing={{ xs: 2, sm: 2 }}
-          direction="row"
-          justifyContent="flex-start"
-          useFlexGap
-          flexWrap="wrap"
-        >
-          {routeData.map((data: any, index: number) => (
-            <MyCard
-              key={"route" + index}
-              content={<Typography variant="body1">{data.cidr}</Typography>}
-              contentStyle={{
-                display: "flex",
-                alignItems: "center",
-                minWidth: 150,
-              }}
-              onEdit={() => RouteUpdateOpen(data)}
-              onDelete={() => RouteDeleteOpen(data)}
-            />
-          ))}
-        </Stack>
-      </Container>
-
-      <Dialog open={routeUpdateOpen} onClose={RouteUpdateClose}>
-        <DialogTitle>修改路由</DialogTitle>
-        <DialogContent>
-          <Box sx={{ padding: 1 }}>
-            <TextField
+        </div>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {routes.map((route) => (
+          <Card
+            key={route.id}
+            className="flex min-h-[190px] flex-col border-l-4 border-l-wg-accent"
+          >
+            <div className="flex-1 p-5">
+              <span className="font-mono text-xs font-semibold uppercase tracking-wider text-wg-accent-strong">
+                CIDR rule
+              </span>
+              <p className="mt-7 break-all font-mono text-xl font-semibold text-slate-900 dark:text-white">
+                {route.cidr}
+              </p>
+              {route.remark && <p className="mt-2 text-sm text-slate-500">{route.remark}</p>}
+            </div>
+            <div className="ui-action-bar">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(route)
+                }}
+              >
+                修改
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setDeleting(route)
+                }}
+              >
+                删除
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <Dialog
+        open={editing !== null}
+        onClose={() => {
+          setEditing(null)
+        }}
+        title="修改路由"
+        className="max-w-sm"
+      >
+        {editing && (
+          <>
+            <Input
               label="路由"
-              variant="outlined"
-              value={routeUpdateCIDR}
-              onChange={(event) => RouteUpdateChange(event)}
+              className="my-2 w-64"
+              maxLength={18}
+              value={editing.cidr}
+              onChange={(event) => {
+                setEditing({ ...editing, cidr: event.target.value })
+              }}
             />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={RouteUpdateClose}>取消</Button>
-          <Button onClick={() => RouteUpdate()}>提交</Button>
-        </DialogActions>
+            <div className="ui-dialog-actions mt-5">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(null)
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={() => {
+                  void update()
+                }}
+              >
+                提交
+              </Button>
+            </div>
+          </>
+        )}
       </Dialog>
-
-      <Dialog open={routeDeleteOpen} onClose={RouteDeleteClose}>
-        <DialogTitle>确认删除路由</DialogTitle>
-        <DialogActions>
-          <Button onClick={RouteDeleteClose}>取消</Button>
-          <Button onClick={() => RouteDelete()}>提交</Button>
-        </DialogActions>
+      <Dialog
+        open={deleting !== null}
+        onClose={() => {
+          setDeleting(null)
+        }}
+        title="确认删除路由"
+      >
+        <div className="ui-dialog-actions">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDeleting(null)
+            }}
+          >
+            取消
+          </Button>
+          <Button variant="danger" onClick={() => void remove()}>
+            提交
+          </Button>
+        </div>
       </Dialog>
-    </Container>
+    </main>
   )
 }

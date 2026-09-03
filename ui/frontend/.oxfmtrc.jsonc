@@ -12,5 +12,5 @@
     "trailingComma": "all",
     "proseWrap": "preserve",
     "embeddedLanguageFormatting": "auto",
-    "endOfLine": "lf"
+    "endOfLine": "lf",
 }

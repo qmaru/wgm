@@ -10,7 +10,7 @@ require (
 	github.com/qmaru/qdb v1.9.1
 	github.com/qmaru/qlog v0.0.6
 	github.com/spf13/cobra v1.10.2
-	github.com/wailsapp/wails/v2 v2.15.0
+	github.com/wailsapp/wails/v2 v2.14.0
 	golang.org/x/crypto v0.55.0
 )
 

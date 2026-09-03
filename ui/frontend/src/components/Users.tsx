@@ -1,247 +1,250 @@
-import { useState, useEffect, useCallback } from "react"
+import { useCallback, useEffect, useState } from "react"
+import { toast } from "sonner"
 
-import Container from "@mui/material/Container"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import TextField from "@mui/material/TextField"
-import Stack from "@mui/material/Stack"
-import Typography from "@mui/material/Typography"
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogTitle from "@mui/material/DialogTitle"
-import Tooltip from "@mui/material/Tooltip"
-import Chip from "@mui/material/Chip"
-import { useSnackbar } from "notistack"
+import { UserAddAPI, UserDeleteAPI, UserListAPI, UserUpdateAPI } from "@wails/go/backend/App"
+import { models } from "@wails/go/models"
 
-import { UserListAPI, UserAddAPI, UserUpdateAPI, UserDeleteAPI } from "../../wailsjs/go/backend/App"
-
-import { MyCard } from "./common"
+import { ApiResponse, UserItem } from "@/types"
+import { Button, Card, Dialog, Input } from "@/components/ui"
 
 export default function Users() {
-  const { enqueueSnackbar } = useSnackbar()
-  const [manualRender, setManualRender] = useState<boolean>(false)
+  const [users, setUsers] = useState<UserItem[]>([])
+  const [username, setUsername] = useState("")
+  const [editing, setEditing] = useState<UserItem | null>(null)
+  const [deleting, setDeleting] = useState<UserItem | null>(null)
 
-  const [userData, setUserData] = useState<any>([])
-
-  const [userAddUsername, setUserAddUsername] = useState<string>("")
-
-  const [userUpdateOpen, setUserUpdateOepn] = useState<boolean>(false)
-  const [userUpdateID, setUserUpdateID] = useState<number>(0)
-  const [userUpdateUsername, setUserUpdateUsername] = useState<string>("")
-
-  const [userDeleteOpen, setUserDeleteOepn] = useState<boolean>(false)
-  const [userDeleteID, setUserDeleteID] = useState<number>(0)
-
-  const UserAddUsernameChange = (event: any) => {
-    setUserAddUsername(event.target.value)
-  }
-
-  const UserUpdateOpen = (user_data: any) => {
-    setUserUpdateOepn(true)
-    setUserUpdateID(user_data.id)
-    setUserUpdateUsername(user_data.username)
-  }
-
-  const UserUpdateClose = () => {
-    setUserUpdateOepn(false)
-  }
-
-  const UserDeleteOpen = (user_data: any) => {
-    setUserDeleteOepn(true)
-    setUserDeleteID(user_data.id)
-  }
-
-  const UserDeleteClose = () => {
-    setUserDeleteOepn(false)
-  }
-
-  const UserUpdateUsernameChange = (event: any) => {
-    setUserUpdateUsername(event.target.value)
-  }
-
-  const UserAdd = () => {
-    let body: any = {
-      username: userAddUsername,
+  const load = useCallback(async (): Promise<void> => {
+    try {
+      const raw = await (UserListAPI as () => Promise<unknown>)()
+      const response = raw as ApiResponse<UserItem[]>
+      if (response.status === 1) setUsers(response.data)
+    } catch {
+      toast.error("用户接口请求失败")
     }
-    UserAddAPI(body)
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-          setUserAddUsername("")
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("用户接口请求失败", window.messageDefault)
-      })
-  }
-
-  const UserUpdate = () => {
-    let body: any = {
-      username: userUpdateUsername,
-    }
-
-    UserUpdateAPI(String(userUpdateID), body)
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          setUserUpdateOepn(false)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("用户接口请求失败", window.messageDefault)
-      })
-  }
-
-  const UserDelete = () => {
-    UserDeleteAPI(String(userDeleteID))
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          setManualRender(!manualRender)
-          setUserDeleteOepn(false)
-          window.messageDefault.variant = "success"
-          enqueueSnackbar(response.message, window.messageDefault)
-        } else {
-          window.messageDefault.variant = "error"
-          enqueueSnackbar(response.message, window.messageDefault)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("用户接口请求失败", window.messageDefault)
-      })
-  }
-
-  const UserList = useCallback(() => {
-    UserListAPI()
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          let data = response.data
-          setUserData(data)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("用户接口请求失败", window.messageDefault)
-      })
-  }, [enqueueSnackbar])
+  }, [])
 
   useEffect(() => {
-    UserList()
-  }, [UserList, manualRender])
+    void load()
+  }, [load])
+
+  const add = async () => {
+    const value = username.trim()
+    if (!value) return toast.warning("请输入用户名")
+    const body = new models.Users({ username: value })
+    try {
+      const raw = await (UserAddAPI as (user: models.Users) => Promise<unknown>)(body)
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setUsername("")
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("用户接口请求失败")
+    }
+  }
+
+  const update = async () => {
+    if (!editing) return
+    const value = editing.username.trim()
+    if (!value) return toast.warning("请输入用户名")
+    const body = new models.Users({ id: editing.id, username: value })
+    try {
+      const raw = await (UserUpdateAPI as (id: string, user: models.Users) => Promise<unknown>)(
+        String(editing.id),
+        body,
+      )
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setEditing(null)
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("用户接口请求失败")
+    }
+  }
+
+  const copyKey = async (key: string): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(key)
+      toast.success("密钥已复制")
+    } catch {
+      toast.error("密钥复制失败")
+    }
+  }
+
+  const displayKey = (key: string) =>
+    key.length > 10 ? `${key.slice(0, 4)}...${key.slice(-6)}` : key
+
+  const remove = async () => {
+    if (!deleting) return
+    try {
+      const raw = await (UserDeleteAPI as (id: string) => Promise<unknown>)(String(deleting.id))
+      const response = raw as ApiResponse<null>
+      if (response.status === 1) {
+        setDeleting(null)
+        void load()
+        toast.success(response.message)
+      } else toast.error(response.message)
+    } catch {
+      toast.error("用户接口请求失败")
+    }
+  }
 
   return (
-    <Container key={"Users-Main"} maxWidth={false}>
-      <Container
-        key={"Users-Control"}
-        disableGutters
-        maxWidth={false}
-        sx={{
-          padding: 4,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <Stack spacing={2}>
-          <TextField
+    <main className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+      <header className="mb-7 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between dark:border-slate-700">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-wg-accent-strong">
+            Identity vault
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+            用户
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">管理用户身份与 WireGuard 密钥</p>
+        </div>
+        <span className="ui-count self-start">{users.length} 个用户</span>
+      </header>
+      <div className="mb-8 w-full xl:w-[calc((100%-3.75rem)/4)]">
+        <div className="ui-input-group">
+          <Input
             label="用户名"
-            variant="outlined"
-            value={userAddUsername}
-            onChange={(event) => UserAddUsernameChange(event)}
+            className="w-full"
+            value={username}
+            onChange={(event) => {
+              setUsername(event.target.value)
+            }}
           />
-          <Button variant="contained" onClick={() => UserAdd()}>
+          <Button
+            className="ui-input-action whitespace-nowrap"
+            onClick={() => {
+              void add()
+            }}
+          >
             提交
           </Button>
-        </Stack>
-      </Container>
-
-      <Container key={"Users-List"} disableGutters sx={{ paddingBottom: 4, maxWidth: 800 }}>
-        <Stack
-          spacing={{ xs: 2, sm: 2 }}
-          direction="row"
-          justifyContent="flex-start"
-          useFlexGap
-          flexWrap="wrap"
-        >
-          {userData.map((data: any, index: number) => (
-            <MyCard
-              key={"user" + index}
-              content={
-                <>
-                  <Typography variant="body1" gutterBottom>
-                    {data.username}
-                  </Typography>
-                  <Stack spacing={2} justifyContent="center" alignItems="center" sx={{ p: 2 }}>
-                    <Tooltip title={data.private_key} placement="top">
-                      <Chip
-                        clickable
-                        sx={{ borderRadius: 2, width: 100 }}
-                        variant="outlined"
-                        label="Private"
-                        color="info"
-                      />
-                    </Tooltip>
-                    <Tooltip title={data.public_key} placement="top">
-                      <Chip
-                        clickable
-                        sx={{ borderRadius: 2, width: 100 }}
-                        variant="outlined"
-                        label="Public"
-                        color="success"
-                      />
-                    </Tooltip>
-                  </Stack>
-                </>
-              }
-              contentStyle={{ pb: 4, minWidth: 150 }}
-              onEdit={() => UserUpdateOpen(data)}
-              onDelete={() => UserDeleteOpen(data)}
-            />
-          ))}
-        </Stack>
-      </Container>
-
-      <Dialog open={userUpdateOpen} onClose={UserUpdateClose}>
-        <DialogTitle>修改用户</DialogTitle>
-        <DialogContent>
-          <Box sx={{ padding: 1 }}>
-            <TextField
+        </div>
+      </div>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {users.map((user) => (
+          <Card key={user.id} className="flex min-h-[285px] flex-col">
+            <div className="flex-1 p-5">
+              <div>
+                <p className="text-xs text-slate-400">USER {user.id}</p>
+                <h2 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                  {user.username}
+                </h2>
+              </div>
+              <div className="mt-6 space-y-4 text-xs">
+                <div>
+                  <p className="mb-1 font-medium text-wg-accent-strong">Private key</p>
+                  <button
+                    type="button"
+                    title="点击复制完整 Private key"
+                    onClick={() => {
+                      void copyKey(user.private_key)
+                    }}
+                    className="ui-preview ui-copyable block w-full break-all p-3 text-left font-mono leading-5 text-slate-600 dark:text-slate-300"
+                  >
+                    {displayKey(user.private_key)}
+                  </button>
+                </div>
+                <div>
+                  <p className="mb-1 font-medium text-wg-accent-strong">Public key</p>
+                  <button
+                    type="button"
+                    title="点击复制完整 Public key"
+                    onClick={() => {
+                      void copyKey(user.public_key)
+                    }}
+                    className="ui-preview ui-copyable block w-full break-all p-3 text-left font-mono leading-5 text-slate-600 dark:text-slate-300"
+                  >
+                    {displayKey(user.public_key)}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="ui-action-bar">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(user)
+                }}
+              >
+                修改
+              </Button>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setDeleting(user)
+                }}
+              >
+                删除
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+      <Dialog
+        open={editing !== null}
+        onClose={() => {
+          setEditing(null)
+        }}
+        title="修改用户"
+        className="max-w-sm"
+      >
+        {editing && (
+          <>
+            <Input
               label="用户名"
-              variant="outlined"
-              value={userUpdateUsername}
-              onChange={(event) => UserUpdateUsernameChange(event)}
+              className="my-2 w-64"
+              value={editing.username}
+              onChange={(event) => {
+                setEditing({ ...editing, username: event.target.value })
+              }}
             />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={UserUpdateClose}>取消</Button>
-          <Button onClick={() => UserUpdate()}>提交</Button>
-        </DialogActions>
+            <div className="ui-dialog-actions mt-5">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setEditing(null)
+                }}
+              >
+                取消
+              </Button>
+              <Button
+                onClick={() => {
+                  void update()
+                }}
+              >
+                提交
+              </Button>
+            </div>
+          </>
+        )}
       </Dialog>
-
-      <Dialog open={userDeleteOpen} onClose={UserDeleteClose}>
-        <DialogTitle>确认删除用户</DialogTitle>
-        <DialogActions>
-          <Button onClick={UserDeleteClose}>取消</Button>
-          <Button onClick={() => UserDelete()}>提交</Button>
-        </DialogActions>
+      <Dialog
+        open={deleting !== null}
+        onClose={() => {
+          setDeleting(null)
+        }}
+        title="确认删除用户"
+      >
+        <div className="ui-dialog-actions">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setDeleting(null)
+            }}
+          >
+            取消
+          </Button>
+          <Button variant="danger" onClick={() => void remove()}>
+            提交
+          </Button>
+        </div>
       </Dialog>
-    </Container>
+    </main>
   )
 }

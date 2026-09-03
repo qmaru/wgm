@@ -1,522 +1,304 @@
-import { useState, useEffect, useCallback } from "react"
-
-import Container from "@mui/material/Container"
-import Box from "@mui/material/Box"
-import Paper from "@mui/material/Paper"
-import Stepper from "@mui/material/Stepper"
-import Step from "@mui/material/Step"
-import StepLabel from "@mui/material/StepLabel"
-import Button from "@mui/material/Button"
-import Typography from "@mui/material/Typography"
-import Radio from "@mui/material/Radio"
-import RadioGroup from "@mui/material/RadioGroup"
-import FormGroup from "@mui/material/FormGroup"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import FormControl from "@mui/material/FormControl"
-import FormLabel from "@mui/material/FormLabel"
-import Checkbox from "@mui/material/Checkbox"
-import Stack from "@mui/material/Stack"
-import Select from "@mui/material/Select"
-import Chip from "@mui/material/Chip"
-import Dialog from "@mui/material/Dialog"
-import DialogContent from "@mui/material/DialogContent"
-import MenuItem from "@mui/material/MenuItem"
-import OutlinedInput from "@mui/material/OutlinedInput"
-import InputLabel from "@mui/material/InputLabel"
-import Divider from "@mui/material/Divider"
-import { useTheme } from "@mui/material/styles"
-
-import { useSnackbar } from "notistack"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
 import QRCode from "react-qr-code"
 
-import { ClipboardText, DataListAPI } from "../../wailsjs/go/backend/App"
+import { ClipboardText, DataListAPI } from "@wails/go/backend/App"
+
+import { ApiResponse, DataList, PeerItem } from "@/types"
+import { Button } from "@/components/ui"
 
 const steps = ["选择 Interface", "选择 Peers", "确认配置"]
 
-const InterfaceOption = (peer: any) => {
-  const username = peer.username
-  const private_addr = peer.private_addr
-  const public_addr = peer.public_addr
-  const port = peer.port
-  let public_info = ""
-  if (public_addr !== "") {
-    public_info = `${public_addr}:${port}`
-  }
-  return (
-    <Stack divider={<Divider orientation="vertical" flexItem />} direction="row" spacing={1}>
-      <Typography color={public_addr === "" ? "default" : "secondary"}>{username}</Typography>
-      <Typography color={public_addr === "" ? "default" : "secondary"}>{private_addr}</Typography>
-      {public_info === "" ? null : (
-        <Typography color={public_addr === "" ? "default" : "secondary"}>{public_info}</Typography>
-      )}
-    </Stack>
-  )
-}
-
 export default function Configs() {
-  const theme = useTheme()
-  const { enqueueSnackbar } = useSnackbar()
-
-  const [activeStep, setActiveStep] = useState(0)
-
-  const [qrOpen, setQROpen] = useState<boolean>(false)
-  const [qrData, setQrData] = useState<string>("")
-  const [copyOpen, setCopyOpen] = useState<boolean>(false)
-  const [copyData, setCopyData] = useState<string>("")
-
-  const [peerData, setPeerData] = useState<any>([])
-  const [routeData, setRouteData] = useState<any>([])
-
-  const [interfaceNode, setInterfaceNode] = useState<string>("")
-  const [peerNodes, setPeerNodes] = useState<any>([])
-  const [routeNodes, setRouteNodes] = useState<any>([])
-  const [interfaceConfig, setInterfaceConfig] = useState<any>([])
-  const [peerConfigs, setPeerConfigs] = useState<any>([])
-
-  const QRClose = () => {
-    setQROpen(false)
-  }
-
-  const QROpen = () => {
-    setQROpen(true)
-  }
-
-  const InterfaceNodeChange = (event: any) => {
-    setInterfaceNode(event.target.value)
-  }
-
-  const PeerNodesChange = (event: any) => {
-    setPeerNodes({ ...peerNodes, [event.target.name]: event.target.checked })
-  }
-
-  const RouteNodesChange = (event: any, selectId: number) => {
-    const value = event.target.value
-    setRouteNodes((prevValues: any) => ({
-      ...prevValues,
-      [selectId]: value,
-    }))
-  }
-
-  const StepNext = () => {
-    if (activeStep === 0 && interfaceNode === "") {
-      window.messageDefault.variant = "warning"
-      enqueueSnackbar("请选择 Interface", window.messageDefault)
-      return false
-    }
-    setActiveStep((prevActiveStep) => prevActiveStep + 1)
-  }
-
-  const StepBack = () => {
-    if (activeStep === 1) {
-      setInterfaceNode("")
-    } else if (activeStep === 2) {
-      setPeerNodes([])
-      setRouteNodes([])
-    }
-    setActiveStep((prevActiveStep) => prevActiveStep - 1)
-  }
-
-  const StepReset = () => {
-    setActiveStep(0)
-    setInterfaceNode("")
-    setPeerNodes([])
-    setRouteNodes([])
-    setCopyOpen(false)
-  }
-
-  const ConfigOut = () => {
-    if (activeStep === 1 && peerNodes.length === 0) {
-      window.messageDefault.variant = "warning"
-      enqueueSnackbar("请选择 Peers", window.messageDefault)
-      return false
-    }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1)
-    let configInterface: any = {}
-    let configPeers: any = []
-    for (let i in peerData) {
-      let pData = peerData[i]
-      if (pData.id.toString() === interfaceNode) {
-        configInterface = pData
-      }
-    }
-
-    let peerNodesTrue: any = []
-    for (let i in peerNodes) {
-      if (peerNodes[i]) {
-        peerNodesTrue.push(i)
-      }
-    }
-
-    for (let i in peerData) {
-      let pData = peerData[i]
-      if (peerNodesTrue.includes(pData.id.toString())) {
-        configPeers.push(pData)
-      }
-    }
-
-    let interface_port = ""
-    let interface_mtu = ""
-    let interface_dns = ""
-
-    if (configInterface.port !== 0) {
-      interface_port = `ListenPort = ${configInterface.port}`
-    }
-
-    if (configInterface.mtu !== 0) {
-      interface_mtu = `MTU = ${configInterface.mtu}`
-    }
-
-    if (configInterface.dns !== "") {
-      interface_dns = `DNS = ${configInterface.dns}`
-    }
-
-    const interface_section = "[Interface]"
-    const interface_remark = `# ${configInterface.username}`
-    const interface_private_key = `PrivateKey = ${configInterface.prikey}`
-    const interface_address = `Address = ${configInterface.private_addr}/24`
-
-    const interface_config = [
-      interface_section,
-      interface_remark,
-      interface_private_key,
-      interface_address,
-      interface_port,
-      interface_mtu,
-      interface_dns,
-    ]
-
-    let peer_configs = []
-    for (let i in configPeers) {
-      let peer_tmp = []
-      const pData = configPeers[i]
-      const peer_id = pData.id.toString()
-      const allowed_ips = pData.allowed_ips
-      let extar_ips = [allowed_ips]
-      if (Object.keys(routeNodes).includes(peer_id)) {
-        extar_ips.push(...routeNodes[peer_id])
-      }
-      const peer_section = "[Peer]"
-      const peer_remark = `# ${pData.username}`
-      const peer_public_key = `PublicKey = ${pData.pubkey}`
-      const peer_allowed_ips = `AllowedIPs = ${extar_ips.toString()}`
-      let peer_endpoint = ""
-      let peer_keepalive = ""
-      if (pData.public_addr !== "") {
-        peer_endpoint = `Endpoint = ${pData.public_addr}:${pData.port}`
-      }
-      if (pData.port !== 0) {
-        peer_keepalive = `PersistentKeepalive = ${pData.keepalive}`
-      }
-      peer_tmp.push(peer_section)
-      peer_tmp.push(peer_remark)
-      peer_tmp.push(peer_public_key)
-      peer_tmp.push(peer_allowed_ips)
-      peer_tmp.push(peer_endpoint)
-      peer_tmp.push(peer_keepalive)
-      const peer_tmp_f = peer_tmp.filter((item: any) => item !== "")
-      peer_configs.push(peer_tmp_f)
-    }
-
-    const interface_config_f = interface_config.filter((item: any) => item !== "")
-
-    const interface_config_str = interface_config_f.join("\n")
-    const peer_config_str = peer_configs.map((config: any) => config.join("\n")).join("\n\n")
-
-    const configDataStr = interface_config_str + "\n\n" + peer_config_str + "\n\n"
-    setCopyData(configDataStr)
-    setQrData(configDataStr)
-
-    setInterfaceConfig(interface_config_f)
-    setPeerConfigs(peer_configs)
-  }
-
-  const PeerDataList = useCallback(() => {
-    DataListAPI()
-      .then((response) => {
-        let status = response.status
-        if (status === 1) {
-          let data = response.data
-          data.routes.sort((i: any, j: any) => i.cidr.localeCompare(j.cidr))
-          data.peers.sort((i: any, j: any) => {
-            const ipSegments1 = i.private_addr.split(".").map((segment: any) => parseInt(segment))
-            const ipSegments2 = j.private_addr.split(".").map((segment: any) => parseInt(segment))
-            for (let i = 0; i < 4; i++) {
-              if (ipSegments1[i] < ipSegments2[i]) {
-                return -1
-              } else if (ipSegments1[i] > ipSegments2[i]) {
-                return 1
-              }
-            }
-            return 0
-          })
-          setRouteData(data.routes)
-          setPeerData(data.peers)
-        }
-      })
-      .catch(() => {
-        window.messageDefault.variant = "error"
-        enqueueSnackbar("配置接口请求失败", window.messageDefault)
-      })
-  }, [enqueueSnackbar])
-
-  const CopyConfig = () => {
-    ClipboardText(copyData).then((res: boolean) => {
-      if (res) {
-        setCopyOpen(true)
-      }
-    })
-  }
-
-  const SelectedInterface = () => {
-    for (let i in peerData) {
-      const peer = peerData[i]
-      if (peer.id.toString() === interfaceNode) {
-        return peer.username + " " + peer.private_addr
-      }
-    }
-    return "请选择接口"
-  }
-
-  const SelectedPeers = () => {
-    let peers: any = []
-    for (let i in peerNodes) {
-      const peer_id = i
-      const peer_checked = peerNodes[peer_id]
-      if (peer_checked) {
-        for (let i in peerData) {
-          const peer = peerData[i]
-          if (peer.id.toString() === peer_id) {
-            peers.push(peer.username + " " + peer.private_addr)
-          }
-        }
-      }
-    }
-
-    if (peers.length === 0) {
-      return ["请选择端点"]
-    }
-    return peers
-  }
+  const [step, setStep] = useState(0)
+  const [peers, setPeers] = useState<PeerItem[]>([])
+  const [routes, setRoutes] = useState<DataList["routes"]>([])
+  const [iface, setIface] = useState("")
+  const [selected, setSelected] = useState<Record<string, boolean>>({})
+  const [routeMap, setRouteMap] = useState<Record<string, string[]>>({})
+  const [config, setConfig] = useState("")
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    PeerDataList()
-  }, [PeerDataList])
+    const load = async () => {
+      try {
+        const raw = await (DataListAPI as () => Promise<unknown>)()
+        const response = raw as ApiResponse<DataList>
+        if (response.status === 1) {
+          const sortedPeers = [...response.data.peers].sort((a, b) =>
+            a.private_addr.localeCompare(b.private_addr),
+          )
+          setPeers(sortedPeers)
+          setRoutes(response.data.routes)
+        }
+      } catch {
+        toast.error("配置接口请求失败")
+      }
+    }
+    void load()
+  }, [])
+
+  const generate = () => {
+    if (!iface) return toast.warning("请选择 Interface")
+    const chosen = peers.filter((peer) => String(peer.id) !== iface && selected[String(peer.id)])
+
+    if (!chosen.length) return toast.warning("请选择 Peers")
+    const local = peers.find((peer) => String(peer.id) === iface)
+
+    if (!local) return toast.error("本地接口不存在")
+    const interfaceLines = [
+      "[Interface]",
+      `# ${local.username}`,
+      `PrivateKey = ${local.prikey}`,
+      `Address = ${local.private_addr}/24`,
+      local.port ? `ListenPort = ${local.port}` : "",
+      local.mtu ? `MTU = ${local.mtu}` : "",
+      local.dns ? `DNS = ${local.dns}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n")
+
+    const peerBlocks = chosen.map((peer) => {
+      const ips = [peer.allowed_ips, ...(routeMap[String(peer.id)] || [])]
+      return [
+        "[Peer]",
+        `# ${peer.username}`,
+        `PublicKey = ${peer.pubkey}`,
+        `AllowedIPs = ${ips.filter(Boolean).join(", ")}`,
+        peer.public_addr ? `Endpoint = ${peer.public_addr}:${peer.port}` : "",
+        peer.keepalive ? `PersistentKeepalive = ${peer.keepalive}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n")
+    })
+    setConfig([interfaceLines, ...peerBlocks].join("\n\n"))
+    setStep(2)
+  }
+
+  const reset = () => {
+    setStep(0)
+    setIface("")
+    setSelected({})
+    setRouteMap({})
+    setConfig("")
+    setCopied(false)
+  }
+
+  const copy = async () => {
+    try {
+      const ok = await ClipboardText(config)
+      if (ok) {
+        setCopied(true)
+        toast.success("配置已复制")
+      } else toast.error("配置复制失败")
+    } catch {
+      toast.error("配置复制失败")
+    }
+  }
+
+  const localPeer = peers.find((peer) => String(peer.id) === iface)
+  const chosenPeers = peers.filter((peer) => String(peer.id) !== iface && selected[String(peer.id)])
+  const stepSummary =
+    step === 0 ? "选择 Interface" : step === 1 ? "选择 Peers 和路由" : "配置已生成"
 
   return (
-    <Container
-      key={"Peers-Main"}
-      disableGutters
-      maxWidth={false}
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-        height: "90vh",
-      }}
-    >
-      <Container key={"Peers-Stepper"} sx={{ pt: 4, pb: 2 }}>
-        <Stepper activeStep={activeStep}>
-          {steps.map((step: any, index: number) => {
-            return (
-              <Step key={"step" + index}>
-                <StepLabel>{step}</StepLabel>
-              </Step>
-            )
-          })}
-        </Stepper>
-
-        <Box sx={{ pt: 4 }}>
-          {activeStep === steps.length ? (
-            <Box sx={{ display: "flex", flexDirection: "row" }}>
-              <Button color="error" variant="contained" onClick={StepReset}>
-                重置
-              </Button>
-              <Box sx={{ flex: "1 1 auto" }} />
-
-              <Button variant="contained" color="success" onClick={() => CopyConfig()}>
-                {copyOpen ? "已复制" : "复制"}
-              </Button>
-            </Box>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "row" }}>
-              <Button variant="contained" disabled={activeStep === 0} onClick={StepBack}>
-                上一步
-              </Button>
-              <Box sx={{ flex: "1 1 auto" }} />
-              <Button variant="contained" onClick={activeStep === 1 ? ConfigOut : StepNext}>
-                {activeStep === steps.length - 1 ? "完成" : "下一步"}
-              </Button>
-            </Box>
-          )}
-        </Box>
-
-        <Stack spacing={1} sx={{ pt: 2, userSelect: "none" }}>
-          <Box>
-            <Button variant="outlined" size="small" color="success">
-              本地接口
-            </Button>
-            <Box component="span" sx={{ pl: 1 }}>
-              <Chip label={SelectedInterface()} color="success" variant="outlined" />
-            </Box>
-          </Box>
-          <Box sx={{ maxWidth: "100%", overflowX: "auto", whiteSpace: "nowrap" }}>
-            <Button variant="outlined" size="small" color="success">
-              远程端点
-            </Button>
-            <Box component="span">
-              {SelectedPeers().map((peer: any, index: number) => {
-                return (
-                  <Box key={"peer" + index} component="span">
-                    <Chip sx={{ m: 1 }} label={peer} color="success" variant="outlined" />
-                  </Box>
-                )
-              })}
-            </Box>
-          </Box>
-        </Stack>
-      </Container>
-
-      <Container
-        key={"Peers-Step-Option"}
-        sx={{
-          pb: 4,
-          flex: 1,
-          width: "100%",
-          overflow: "auto",
-        }}
-      >
-        <Box>
-          {activeStep === 0 ? (
-            <FormControl>
-              <FormLabel sx={{ paddingBottom: 1 }}>
-                选择<b>本地</b>接口 Interface
-              </FormLabel>
-              <RadioGroup value={interfaceNode} onChange={InterfaceNodeChange}>
-                {peerData.map((peer: any, index: number) => {
-                  return (
-                    <FormControlLabel
-                      key={"interface" + index}
-                      sx={{ pt: 1 }}
-                      value={peer.id}
-                      control={<Radio color={peer.public_addr === "" ? "primary" : "secondary"} />}
-                      label={InterfaceOption(peer)}
-                    />
-                  )
-                })}
-              </RadioGroup>
-            </FormControl>
-          ) : activeStep === 1 ? (
-            <FormGroup>
-              <FormLabel>
-                选择<b>对端</b> Peer
-              </FormLabel>
-              <Stack>
-                {peerData.map((peer: any, index: number) => {
-                  return (
-                    <Box key={"peer" + index}>
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                          <FormControlLabel
-                            label={InterfaceOption(peer)}
-                            control={
-                              <Checkbox
-                                disabled={peer.id.toString() === interfaceNode}
-                                name={peer.id.toString()}
-                                color={peer.public_addr === "" ? "primary" : "secondary"}
-                                onChange={PeerNodesChange}
-                              />
-                            }
-                          />
-                        </Box>
-
-                        <Box sx={{ paddingBottom: 2, paddingTop: 2 }}>
-                          <FormControl
-                            sx={{ width: 400 }}
-                            disabled={peer.id.toString() === interfaceNode}
-                          >
-                            <InputLabel>路由规则</InputLabel>
-                            <Select
-                              label="路由规则"
-                              multiple
-                              value={routeNodes[peer.id.toString()] || []}
-                              onChange={(event) => RouteNodesChange(event, peer.id.toString())}
-                              input={<OutlinedInput label="路由规则" />}
-                              renderValue={(selected) => (
-                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                                  {selected.map((value: any) => (
-                                    <Chip key={value} label={value} />
-                                  ))}
-                                </Box>
-                              )}
-                            >
-                              {routeData.map((route: any) => (
-                                <MenuItem key={"route" + route.id} value={route.cidr}>
-                                  {route.cidr}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                      <Divider />
-                    </Box>
-                  )
-                })}
-              </Stack>
-            </FormGroup>
-          ) : (
-            <Box>
-              <Box sx={{ paddingBottom: 4 }}>
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => QROpen()}
-                  sx={{ color: "white" }}
-                  disabled={activeStep !== steps.length}
+    <main className="mx-auto min-h-full max-w-6xl px-5 py-6 pb-10 sm:px-8">
+      <header className="mb-7 border-b border-slate-200 pb-5 dark:border-slate-700">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-wg-accent-strong">
+          Configuration builder
+        </p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+          配置
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">按步骤生成 WireGuard 配置并导出</p>
+      </header>
+      <div className="mx-auto w-full max-w-4xl">
+        <div className="mb-5 grid grid-cols-3 border-b border-slate-200 dark:border-slate-700">
+          {steps.map((label, index) => (
+            <div
+              key={label}
+              data-current={index === step}
+              data-complete={index < step}
+              className="ui-step px-3 py-3 text-center text-sm font-medium"
+            >
+              <span className="mr-2 font-mono text-xs">0{index + 1}</span>
+              {label}
+            </div>
+          ))}
+        </div>
+        <div className="ui-panel mb-4 px-4 py-3">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{stepSummary}</p>
+          <div className="mt-3 grid gap-1 text-xs text-slate-600 dark:text-slate-300">
+            <p>
+              <span className="mr-2 text-slate-400">Interface</span>
+              {localPeer ? `${localPeer.username} · ${localPeer.private_addr}` : "未选择"}
+            </p>
+            <p>
+              <span className="mr-2 text-slate-400">Peers</span>
+              {chosenPeers.length
+                ? chosenPeers.map((peer) => `${peer.username} · ${peer.private_addr}`).join("、")
+                : "未选择"}
+            </p>
+          </div>
+        </div>
+        <div className="mb-6 flex items-center justify-between gap-3 border-b border-slate-200 pb-5 dark:border-slate-700">
+          <Button
+            variant="outline"
+            disabled={step === 0}
+            onClick={() => {
+              setStep(Math.max(0, step - 1))
+            }}
+          >
+            上一步
+          </Button>
+          <Button
+            onClick={
+              step === 1
+                ? generate
+                : step === 2
+                  ? reset
+                  : () => {
+                      if (!iface) toast.warning("请选择 Interface")
+                      else setStep(1)
+                    }
+            }
+          >
+            {step === 1 || step === 2 ? "完成" : "下一步"}
+          </Button>
+        </div>
+        {step === 0 && (
+          <fieldset>
+            <legend className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
+              选择本地接口 Interface
+            </legend>
+            <div className="grid gap-3">
+              {peers.map((peer) => (
+                <label
+                  key={peer.id}
+                  data-selected={iface === String(peer.id)}
+                  className="ui-choice-card flex cursor-pointer items-center gap-3 p-4"
                 >
-                  显示二维码
-                </Button>
-              </Box>
-              <Paper
-                variant="outlined"
-                sx={{ borderBottomLeftRadius: 8, borderBottomRightRadius: 8 }}
-              >
-                <Box
-                  sx={{
-                    borderTopLeftRadius: 8,
-                    borderTopRightRadius: 8,
-                    backgroundColor: theme.palette.primary.main,
-                    p: 0.6,
-                  }}
-                />
-                <Box sx={{ p: 2 }}>
-                  {interfaceConfig.map((inter_c: any, index: number) => {
-                    return <Typography key={"intercfg" + index}>{inter_c}</Typography>
-                  })}
-                  <Box m={2} />
-                  {peerConfigs.map((peer_config: any, index: number) => {
-                    return (
-                      <Box key={"peerscfg" + index}>
-                        {peer_config.map((peer: any, index: number) => {
-                          return <Typography key={"peercfg" + index}>{peer}</Typography>
-                        })}
-                        <Box m={2} />
-                      </Box>
-                    )
-                  })}
-                </Box>
-              </Paper>
-            </Box>
-          )}
-        </Box>
-      </Container>
-
-      <Dialog open={qrOpen} onClose={QRClose}>
-        <DialogContent sx={{ m: 0 }}>
-          <QRCode value={qrData} size={256} fgColor="#000000" />
-        </DialogContent>
-      </Dialog>
-    </Container>
+                  <input
+                    type="radio"
+                    name="interface"
+                    value={peer.id}
+                    checked={iface === String(peer.id)}
+                    onChange={(event) => {
+                      setIface(event.target.value)
+                    }}
+                  />
+                  <span className="min-w-0">
+                    <strong
+                      className={`block break-all font-mono text-sm font-semibold ${peer.public_addr ? "text-wg-accent-strong" : "text-slate-900 dark:text-white"}`}
+                    >
+                      {peer.username}
+                    </strong>
+                    <span className="mt-1 block break-all font-mono text-xs text-slate-500 dark:text-slate-400">
+                      {peer.private_addr}
+                      {peer.public_addr ? ` · ${peer.public_addr}:${peer.port}` : ""}
+                    </span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        )}
+        {step === 1 && (
+          <fieldset>
+            <legend className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
+              选择对端 Peer（可多选）
+            </legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {peers
+                .filter((peer) => String(peer.id) !== iface)
+                .map((peer) => {
+                  const peerRoutes = routeMap[String(peer.id)] || []
+                  const peerSelected = !!selected[String(peer.id)]
+                  const hasPublicAddress = !!peer.public_addr
+                  return (
+                    <div
+                      key={peer.id}
+                      data-selected={peerSelected}
+                      className="ui-choice-card min-w-0 p-3"
+                    >
+                      <label className="flex cursor-pointer items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={peerSelected}
+                          onChange={(event) => {
+                            setSelected((current) => ({
+                              ...current,
+                              [String(peer.id)]: event.target.checked,
+                            }))
+                          }}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <strong
+                            className={`block break-all font-mono text-sm font-semibold ${hasPublicAddress ? "text-wg-accent-strong" : "text-slate-900 dark:text-white"}`}
+                          >
+                            {peer.username}
+                          </strong>
+                          <span className="mt-1 block break-all font-mono text-xs text-slate-500 dark:text-slate-400">
+                            {peer.private_addr}
+                          </span>
+                        </span>
+                      </label>
+                      <div className="mt-3 flex flex-wrap gap-2 border-t border-dashed border-slate-200 pt-3 dark:border-slate-700">
+                        <span className="w-full text-xs text-slate-400">路由（可多选）</span>
+                        {routes.length ? (
+                          routes.map((route) => {
+                            const checked = peerRoutes.includes(route.cidr)
+                            return (
+                              <Button
+                                key={route.id}
+                                aria-pressed={checked}
+                                disabled={!peerSelected}
+                                variant={checked ? "primary" : "outline"}
+                                onClick={() => {
+                                  setRouteMap((current) => ({
+                                    ...current,
+                                    [String(peer.id)]: checked
+                                      ? peerRoutes.filter((cidr) => cidr !== route.cidr)
+                                      : [...peerRoutes, route.cidr],
+                                  }))
+                                }}
+                                className="min-h-0 px-2.5 py-1.5 text-xs font-normal"
+                              >
+                                {route.cidr}
+                              </Button>
+                            )
+                          })
+                        ) : (
+                          <span className="text-xs text-slate-400">暂无可选路由</span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+            </div>
+          </fieldset>
+        )}
+        {step === 2 && (
+          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+            <button
+              type="button"
+              title="点击复制完整配置"
+              onClick={() => void copy()}
+              className="ui-preview ui-copyable min-w-0 p-5 text-left"
+            >
+              <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap font-mono text-sm leading-6 text-slate-700 dark:text-slate-200">
+                {config}
+              </pre>
+              <p className="mt-4 border-t border-dashed border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700">
+                点击此处复制完整配置{copied ? " · 已复制" : ""}
+              </p>
+            </button>
+            <div className="ui-preview flex items-center justify-center p-4">
+              <QRCode value={config} size={180} />
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
   )
 }

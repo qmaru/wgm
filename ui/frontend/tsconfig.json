@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@wails/*": [
+        "./wailsjs/*"
+      ]
+    },
     "target": "es6",
     "lib": [
       "dom",
@@ -7,8 +15,7 @@
       "esnext"
     ],
     "types": [
-      "vite/client",
-      "vite-plugin-svgr/client"
+      "vite/client"
     ],
     "allowJs": true,
     "skipLibCheck": true,
