@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react"
-import { toast } from "sonner"
 
 import {
   PeerAddAPI,
@@ -9,9 +8,10 @@ import {
   UserListAPI,
 } from "@wails/go/backend/App"
 import { models } from "@wails/go/models"
+import { toast } from "sonner"
 
-import { PeerField, PeerFieldKey, PeerFormState, PeerItem, UserItem, ApiResponse } from "@/types"
 import { Button, Card, Dialog, Input, SelectField } from "@/components/ui"
+import { PeerField, PeerFieldKey, PeerFormState, PeerItem, UserItem, ApiResponse } from "@/types"
 
 const empty: PeerFormState = {
   user_id: "",

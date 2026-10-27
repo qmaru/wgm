@@ -1,3 +1,5 @@
+import { Fragment, ReactNode } from "react"
+
 import {
   Dialog as HeadlessDialog,
   DialogPanel,
@@ -10,7 +12,6 @@ import {
   TabGroup,
   TabList,
 } from "@headlessui/react"
-import { Fragment, ReactNode } from "react"
 
 const buttonVariants = {
   primary: "ui-button-solid",

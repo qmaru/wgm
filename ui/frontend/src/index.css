@@ -247,6 +247,14 @@ body {
   background: rgba(136, 23, 26, 0.045);
 }
 
+.ui-config-fragment {
+  background: var(--wg-surface-muted);
+}
+
+.ui-config-all {
+  background: rgba(136, 23, 26, 0.07);
+}
+
 .ui-choice-card {
   border: 2px solid var(--wg-border-soft);
   border-radius: 0.25rem;
@@ -393,5 +401,13 @@ a {
 
   .ui-copyable:hover {
     background: rgba(136, 23, 26, 0.14);
+  }
+
+  .ui-config-fragment {
+    background: var(--wg-surface);
+  }
+
+  .ui-config-all {
+    background: rgba(136, 23, 26, 0.18);
   }
 }

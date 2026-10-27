@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
-import { toast } from "sonner"
 
 import { UserAddAPI, UserDeleteAPI, UserListAPI, UserUpdateAPI } from "@wails/go/backend/App"
 import { models } from "@wails/go/models"
+import { toast } from "sonner"
 
-import { ApiResponse, UserItem } from "@/types"
 import { Button, Card, Dialog, Input } from "@/components/ui"
+import { ApiResponse, UserItem } from "@/types"
 
 export default function Users() {
   const [users, setUsers] = useState<UserItem[]>([])

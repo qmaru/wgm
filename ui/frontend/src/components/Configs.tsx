@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import QRCode from "react-qr-code"
 
 import { ClipboardText, DataListAPI } from "@wails/go/backend/App"
+import { toast } from "sonner"
 
-import { ApiResponse, DataList, PeerItem } from "@/types"
 import { Button } from "@/components/ui"
+import { ApiResponse, DataList, PeerItem } from "@/types"
 
 const steps = ["选择 Interface", "选择 Peers", "确认配置"]
 
@@ -27,7 +27,8 @@ export default function Configs() {
   const [selectedPeerIds, setSelectedPeerIds] = useState<string[]>([])
   const [routeMap, setRouteMap] = useState<Record<string, string[]>>({})
   const [config, setConfig] = useState("")
-  const [copied, setCopied] = useState(false)
+  const [configBlocks, setConfigBlocks] = useState<string[]>([])
+  const [copied, setCopied] = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -83,7 +84,10 @@ export default function Configs() {
         .filter(Boolean)
         .join("\n")
     })
-    setConfig([interfaceLines, ...peerBlocks].join("\n\n"))
+    const nextConfigBlocks = [interfaceLines, ...peerBlocks]
+    setConfigBlocks(nextConfigBlocks)
+    setConfig(nextConfigBlocks.join("\n\n"))
+    setCopied(null)
     setStep(2)
   }
 
@@ -94,18 +98,19 @@ export default function Configs() {
     setSelectedPeerIds([])
     setRouteMap({})
     setConfig("")
-    setCopied(false)
+    setConfigBlocks([])
+    setCopied(null)
   }
 
-  const copy = async () => {
+  const copy = async (text: string, key: string, label: string) => {
     try {
-      const ok = await ClipboardText(config)
+      const ok = await ClipboardText(text)
       if (ok) {
-        setCopied(true)
-        toast.success("配置已复制")
-      } else toast.error("配置复制失败")
+        setCopied(key)
+        toast.success(`${label}已复制`)
+      } else toast.error(`${label}复制失败`)
     } catch {
-      toast.error("配置复制失败")
+      toast.error(`${label}复制失败`)
     }
   }
 
@@ -314,23 +319,42 @@ export default function Configs() {
           </fieldset>
         )}
         {step === 2 && (
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
+          <div className="grid min-w-0 gap-3">
+            {configBlocks.map((block, index) => {
+              const blockKey = `block-${index}`
+              return (
+                <button
+                  key={blockKey}
+                  type="button"
+                  title="点击复制此配置块"
+                  onClick={() => void copy(block, blockKey, "配置块")}
+                  className="ui-preview ui-copyable ui-config-fragment min-w-0 p-5 text-left"
+                >
+                  <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap font-mono text-sm leading-6 text-slate-700 dark:text-slate-200">
+                    {block}
+                  </pre>
+                  <p className="mt-4 border-t border-dashed border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700">
+                    点击此处复制此配置块{copied === blockKey ? " · 已复制" : ""}
+                  </p>
+                </button>
+              )
+            })}
             <button
               type="button"
-              title="点击复制完整配置"
-              onClick={() => void copy()}
-              className="ui-preview ui-copyable min-w-0 p-5 text-left"
+              title="点击复制全部配置"
+              onClick={() => void copy(config, "all", "完整配置")}
+              className="ui-preview ui-copyable ui-config-all min-w-0 p-5 text-left"
             >
               <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap font-mono text-sm leading-6 text-slate-700 dark:text-slate-200">
                 {config}
               </pre>
               <p className="mt-4 border-t border-dashed border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-700">
-                点击此处复制完整配置{copied ? " · 已复制" : ""}
+                点击此处复制全部配置{copied === "all" ? " · 已复制" : ""}
               </p>
+              <div className="mt-4 flex justify-center border-t border-dashed border-slate-200 pt-4 dark:border-slate-700">
+                <QRCode value={config} size={180} />
+              </div>
             </button>
-            <div className="ui-preview flex items-center justify-center p-4">
-              <QRCode value={config} size={180} />
-            </div>
           </div>
         )}
       </div>

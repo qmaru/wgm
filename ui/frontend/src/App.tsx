@@ -1,11 +1,12 @@
 import { useState } from "react"
+
 import { Toaster } from "sonner"
 
 import Configs from "@/components/Configs"
 import Peers from "@/components/Peers"
 import Routes from "@/components/Routes"
-import Users from "@/components/Users"
 import { Tabs } from "@/components/ui"
+import Users from "@/components/Users"
 
 export default function App() {
   const [tabIndex, setTabIndex] = useState(0)
