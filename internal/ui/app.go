@@ -8,8 +8,8 @@ import (
 	"github.com/egoist/mygo"
 	myui "github.com/egoist/mygo/ui"
 
-	"wgm/backend"
-	"wgm/common/utils"
+	"github.com/qmaru/wgm/backend"
+	"github.com/qmaru/wgm/common/utils"
 )
 
 const (

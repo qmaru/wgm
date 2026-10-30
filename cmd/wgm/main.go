@@ -6,8 +6,8 @@ import (
 	"github.com/egoist/mygo"
 	myui "github.com/egoist/mygo/ui"
 
-	"wgm/backend"
-	wgmui "wgm/internal/ui"
+	"github.com/qmaru/wgm/backend"
+	wgmui "github.com/qmaru/wgm/internal/ui"
 )
 
 func main() {

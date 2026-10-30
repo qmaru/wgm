@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"wgm/common/utils"
+	"github.com/qmaru/wgm/common/utils"
 
 	"github.com/adrg/xdg"
 )

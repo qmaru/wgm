@@ -8,7 +8,7 @@ import (
 	myui "github.com/egoist/mygo/ui"
 	qrcode "github.com/skip2/go-qrcode"
 
-	"wgm/backend"
+	"github.com/qmaru/wgm/backend"
 )
 
 var configSteps = [3]string{"选择 Interface", "选择 Peers", "确认配置"}

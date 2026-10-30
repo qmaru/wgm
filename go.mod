@@ -1,4 +1,4 @@
-module wgm
+module github.com/qmaru/wgm
 
 go 1.27.3
 

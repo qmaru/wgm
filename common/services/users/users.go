@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"wgm/common/dbs"
-	"wgm/common/dbs/models"
+	"github.com/qmaru/wgm/common/dbs"
+	"github.com/qmaru/wgm/common/dbs/models"
 )
 
 func UserIDCheck(userID int) (int, error) {

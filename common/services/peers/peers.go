@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"wgm/common/dbs"
-	"wgm/common/dbs/models"
-	"wgm/common/services/common"
-	"wgm/common/services/users"
+	"github.com/qmaru/wgm/common/dbs"
+	"github.com/qmaru/wgm/common/dbs/models"
+	"github.com/qmaru/wgm/common/services/common"
+	"github.com/qmaru/wgm/common/services/users"
 )
 
 func PeerIDCheck(peerID int) (int, error) {

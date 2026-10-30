@@ -7,7 +7,7 @@ import (
 
 	myui "github.com/egoist/mygo/ui"
 
-	"wgm/backend"
+	"github.com/qmaru/wgm/backend"
 )
 
 func TestBuildConfig(t *testing.T) {

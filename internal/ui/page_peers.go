@@ -7,7 +7,7 @@ import (
 
 	myui "github.com/egoist/mygo/ui"
 
-	"wgm/backend"
+	"github.com/qmaru/wgm/backend"
 )
 
 // peerForm is a peer being added or changed.

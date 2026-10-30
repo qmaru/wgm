@@ -1,10 +1,10 @@
 package backend
 
 import (
-	"wgm/common/dbs/models"
-	"wgm/common/services/peers"
-	"wgm/common/services/routes"
-	"wgm/common/services/users"
+	"github.com/qmaru/wgm/common/dbs/models"
+	"github.com/qmaru/wgm/common/services/peers"
+	"github.com/qmaru/wgm/common/services/routes"
+	"github.com/qmaru/wgm/common/services/users"
 )
 
 // User, Route and Peer are data rows the UI displays.

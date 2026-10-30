@@ -3,8 +3,8 @@ package dbs
 import (
 	"log"
 
-	"wgm/common/configs"
-	"wgm/common/dbs/models"
+	"github.com/qmaru/wgm/common/configs"
+	"github.com/qmaru/wgm/common/dbs/models"
 
 	"github.com/qmaru/qdb/sqlitep"
 )
