@@ -4,17 +4,25 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/egoist/mygo"
 	myui "github.com/egoist/mygo/ui"
 
 	"wgm/backend"
 	"wgm/common/utils"
 )
 
-// app is everything the window draws.
+const (
+	themeLight = iota
+	themeDark
+	themeAuto
+)
+
+// App is everything the window draws.
 type App struct {
 	db      backend.Store
 	version string
 	tab     int
+	theme   int
 	loaded  bool
 
 	users    []backend.User
@@ -53,6 +61,7 @@ func NewApp(db backend.Store) *App {
 	a := &App{
 		db:       db,
 		version:  utils.AppVersion,
+		theme:    themeAuto,
 		selected: map[string]bool{},
 		routeMap: map[string][]string{},
 	}
@@ -73,7 +82,28 @@ const (
 )
 
 func applyWireGuardTheme(c *myui.Context) {
+	applyWireGuardThemeMode(c, themeAuto)
+}
+
+func setApplicationTheme(mode int) {
+	switch mode {
+	case themeLight:
+		mygo.Theme.SetSource(mygo.ThemeLight)
+	case themeDark:
+		mygo.Theme.SetSource(mygo.ThemeDark)
+	default:
+		mygo.Theme.SetSource(mygo.ThemeSystem)
+	}
+}
+
+func applyWireGuardThemeMode(c *myui.Context, mode int) {
 	t := *c.Theme()
+	switch mode {
+	case themeLight:
+		t.Dark = false
+	case themeDark:
+		t.Dark = true
+	}
 	t.Radius = 9
 	t.Spacing = 4
 	t.FontSize = 14
@@ -153,7 +183,7 @@ func dangerButton(c *myui.Context, label string) myui.Element {
 // view builds the window: the version, the tabs, the page chosen and the
 // dialogs over it.
 func (a *App) View(c *myui.Context) {
-	applyWireGuardTheme(c)
+	applyWireGuardThemeMode(c, a.theme)
 	if !a.loaded {
 		a.loaded = true
 		a.loadUsers(c)
@@ -162,8 +192,11 @@ func (a *App) View(c *myui.Context) {
 	}
 
 	myui.Column(c).Fill().MinWidth(0).Children(func() {
-		myui.Row(c).Padding(10, pagePaddingX, 0, pagePaddingX).Shrink(0).Children(func() {
+		myui.Row(c).Justify(myui.SpaceBetween).AlignItems(myui.Center).Padding(10, pagePaddingX, 0, pagePaddingX).Shrink(0).Children(func() {
 			myui.Text(c, "v"+a.version).FontSize(12).TextColor(c.Theme().TextMuted)
+			if myui.Segmented(c, &a.theme, "Light", "Dark", "Auto").Label("Theme").Changed() {
+				setApplicationTheme(a.theme)
+			}
 		})
 		myui.Row(c).Justify(myui.Center).Padding(0, pagePaddingX).Shrink(0).Children(func() {
 			myui.Tabs(c, &a.tab, "配置", "节点", "用户", "路由")

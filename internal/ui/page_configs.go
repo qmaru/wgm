@@ -70,9 +70,10 @@ func (a *App) stepSummary(c *myui.Context) {
 	}
 
 	title := "配置已生成"
-	if a.step == 0 {
+	switch a.step {
+	case 0:
 		title = "选择 Interface"
-	} else if a.step == 1 {
+	case 1:
 		title = "选择 Peers 和路由"
 	}
 	myui.Column(c).Gap(4).MinWidth(0).Padding(10).Radius(8).Border(1, t.Border).Background(t.Surface).
