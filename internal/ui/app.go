@@ -3,6 +3,7 @@ package ui
 import (
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo"
 	myui "github.com/egoist/mygo/ui"
@@ -17,6 +18,25 @@ const (
 	themeAuto
 )
 
+type loadScope uint8
+
+const (
+	loadUsersScope loadScope = 1 << iota
+	loadPeersScope
+	loadRoutesScope
+	loadAllScope = loadUsersScope | loadPeersScope | loadRoutesScope
+)
+
+type appLoadResult struct {
+	scope    loadScope
+	users    []backend.User
+	peers    []backend.Peer
+	routes   []backend.Route
+	userErr  error
+	peerErr  error
+	routeErr error
+}
+
 // App is everything the window draws.
 type App struct {
 	db      backend.Store
@@ -24,6 +44,10 @@ type App struct {
 	tab     int
 	theme   int
 	loaded  bool
+	loading bool
+
+	loadDone        chan appLoadResult
+	reloadRequested loadScope
 
 	users    []backend.User
 	userGrid myui.GridState
@@ -64,21 +88,37 @@ func NewApp(db backend.Store) *App {
 		theme:    themeAuto,
 		selected: map[string]bool{},
 		routeMap: map[string][]string{},
+		loadDone: make(chan appLoadResult, 1),
 	}
 	return a
 }
 
 const (
-	pageMaxWidth     = 1180
-	pagePaddingX     = 20
-	pagePaddingY     = 16
-	cardHeadHeight   = 64
-	cardActionHeight = 58
-	cardButtonHeight = 36
-	cardContentGap   = 8
-	gridGap          = 8
-	gridRightInset   = 12
-	gridBottomInset  = 16
+	pageMaxWidth        = 1180
+	pagePaddingX        = 20
+	pagePaddingY        = 16
+	cardHeadHeight      = 64
+	cardActionHeight    = 58
+	cardButtonHeight    = 36
+	cardContentGap      = 8
+	gridGap             = 8
+	gridRightInset      = 12
+	gridBottomInset     = 16
+	configQRSize        = 512
+	configQRDisplaySize = 240
+)
+
+var (
+	cardStateTransition = myui.ElementTransition{
+		Colors:   true,
+		Duration: 120 * time.Millisecond,
+		Ease:     myui.EaseOut,
+	}
+	pageTransition = myui.ElementTransition{
+		Duration: 160 * time.Millisecond,
+		Ease:     myui.EaseOut,
+		Enter:    &myui.Motion{X: 12, Opacity: 0, Scale: 0.995},
+	}
 )
 
 func applyWireGuardTheme(c *myui.Context) {
@@ -184,11 +224,9 @@ func dangerButton(c *myui.Context, label string) myui.Element {
 // dialogs over it.
 func (a *App) View(c *myui.Context) {
 	applyWireGuardThemeMode(c, a.theme)
+	a.applyPendingLoad(c)
 	if !a.loaded {
-		a.loaded = true
-		a.loadUsers(c)
-		a.loadPeers(c)
-		a.loadRoutes(c)
+		a.requestLoad(c, loadAllScope)
 	}
 
 	myui.Column(c).Fill().MinWidth(0).Children(func() {
@@ -201,16 +239,19 @@ func (a *App) View(c *myui.Context) {
 		myui.Row(c).Justify(myui.Center).Padding(0, pagePaddingX).Shrink(0).Children(func() {
 			myui.Tabs(c, &a.tab, "配置", "节点", "用户", "路由")
 		})
-		switch a.tab {
-		case 0:
-			a.configsPage(c)
-		case 1:
-			a.peersPage(c)
-		case 2:
-			a.usersPage(c)
-		case 3:
-			a.routesPage(c)
-		}
+		page := myui.Column(c).Key(a.tab).Grow(1).MinWidth(0).MinHeight(0)
+		page.Transition(pageTransition).Children(func() {
+			switch a.tab {
+			case 0:
+				a.configsPage(c)
+			case 1:
+				a.peersPage(c)
+			case 2:
+				a.usersPage(c)
+			case 3:
+				a.routesPage(c)
+			}
+		})
 		a.dialogs(c)
 	})
 }
@@ -252,31 +293,72 @@ func pageHeader(c *myui.Context, eyebrow, title, subtitle string, beside func())
 	myui.Divider(c).Shrink(0).Margin(12, 0, 16, 0)
 }
 
-func (a *App) loadUsers(c *myui.Context) {
-	rows, err := a.db.Users()
-	if err != nil {
-		c.Toast("用户列表获取失败: " + err.Error())
+func (a *App) requestLoad(c *myui.Context, scope loadScope) {
+	if a.loading {
+		a.reloadRequested |= scope
 		return
 	}
-	a.users = rows
+	if a.loadDone == nil {
+		a.loadDone = make(chan appLoadResult, 1)
+	}
+	a.loading = true
+	services := c.Services()
+	go func() {
+		result := appLoadResult{scope: scope}
+		if scope&loadUsersScope != 0 {
+			result.users, result.userErr = a.db.Users()
+		}
+		if scope&loadPeersScope != 0 {
+			result.peers, result.peerErr = a.db.Peers()
+		}
+		if scope&loadRoutesScope != 0 {
+			result.routes, result.routeErr = a.db.Routes()
+		}
+		a.loadDone <- result
+		services.Invalidate()
+	}()
 }
 
-func (a *App) loadPeers(c *myui.Context) {
-	rows, err := a.db.Peers()
-	if err != nil {
-		c.Toast("节点列表获取失败: " + err.Error())
+func (a *App) applyPendingLoad(c *myui.Context) {
+	if a.loadDone == nil {
 		return
 	}
-	a.peers = rows
+	select {
+	case result := <-a.loadDone:
+		a.loading = false
+		a.loaded = true
+		if result.scope&loadUsersScope != 0 {
+			if result.userErr == nil {
+				a.users = result.users
+			} else {
+				c.Toast("用户列表获取失败: " + result.userErr.Error())
+			}
+		}
+		if result.scope&loadPeersScope != 0 {
+			if result.peerErr == nil {
+				a.peers = result.peers
+			} else {
+				c.Toast("节点列表获取失败: " + result.peerErr.Error())
+			}
+		}
+		if result.scope&loadRoutesScope != 0 {
+			if result.routeErr == nil {
+				a.routes = result.routes
+			} else {
+				c.Toast("路由列表获取失败: " + result.routeErr.Error())
+			}
+		}
+		if a.reloadRequested != 0 {
+			scope := a.reloadRequested
+			a.reloadRequested = 0
+			a.requestLoad(c, scope)
+		}
+	default:
+	}
 }
 
-func (a *App) loadRoutes(c *myui.Context) {
-	rows, err := a.db.Routes()
-	if err != nil {
-		c.Toast("路由列表获取失败: " + err.Error())
-		return
-	}
-	a.routes = rows
+func (a *App) refreshData(c *myui.Context, scope loadScope) {
+	a.requestLoad(c, scope)
 }
 
 // userNames are the users a new peer may belong to.
@@ -315,6 +397,42 @@ func (a *App) peerByKey(key string) *backend.Peer {
 	return nil
 }
 
+func (a *App) peerWithoutInterface(index int) *backend.Peer {
+	for i := range a.peers {
+		if peerKey(a.peers[i].ID) == a.iface {
+			continue
+		}
+		if index == 0 {
+			return &a.peers[i]
+		}
+		index--
+	}
+	return nil
+}
+
+func (a *App) selectedPeersSummary() string {
+	var summary strings.Builder
+	for _, key := range a.order {
+		if key == a.iface {
+			continue
+		}
+		p := a.peerByKey(key)
+		if p == nil {
+			continue
+		}
+		if summary.Len() > 0 {
+			summary.WriteString("、")
+		}
+		summary.WriteString(p.Username)
+		summary.WriteString(" · ")
+		summary.WriteString(p.PrivateAddr)
+	}
+	if summary.Len() == 0 {
+		return "未选择"
+	}
+	return summary.String()
+}
+
 func cardFrame(c *myui.Context, head, content, actions func()) {
 	cardShell(c, true, head, content, actions)
 }
@@ -335,6 +453,12 @@ func cardShell(c *myui.Context, fillHeight bool, head, content, actions func()) 
 		myui.Row(c).Height(cardActionHeight).Gap(8).Padding(10, 18).
 			AlignItems(myui.Center).Wrap().Children(actions)
 	})
+	background, border := t.Surface, t.Border
+	if card.Hovered() {
+		background = t.SurfaceHover
+		border = t.Accent.Alpha(0.45)
+	}
+	card.Background(background).BorderColor(border).Transition(cardStateTransition)
 	return card
 }
 

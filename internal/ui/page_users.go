@@ -16,11 +16,12 @@ func (a *App) usersPage(c *myui.Context) {
 			myui.Text(c, fmt.Sprintf("%d 个用户", len(a.users))).FontSize(13).TextColor(t.TextMuted)
 		})
 
-		myui.Row(c).Gap(8).AlignItems(myui.End).Wrap().MaxWidth(420).Shrink(0).Children(func() {
+		myui.Row(c).Gap(0).AlignItems(myui.End).Wrap().MaxWidth(420).Shrink(0).Children(func() {
 			myui.Field(c, "用户名", func() {
-				myui.TextInput(c, &a.userName).Placeholder("用户名").Grow(1).MinWidth(0)
+				myui.TextInput(c, &a.userName).Placeholder("用户名").Height(cardButtonHeight).
+					Radius(8, 0, 0, 8).Grow(1).MinWidth(0)
 			}).Grow(1).MinWidth(160)
-			if myui.PrimaryButton(c, "提交").Height(cardButtonHeight).Padding(7, 16).Clicked() {
+			if myui.PrimaryButton(c, "提交").Height(cardButtonHeight).Padding(5, 16).Radius(0, 8, 8, 0).Clicked() {
 				a.addUser(c)
 			}
 		})
@@ -77,7 +78,7 @@ func (a *App) addUser(c *myui.Context) {
 		return
 	}
 	a.userName = ""
-	a.loadUsers(c)
+	a.refreshData(c, loadUsersScope)
 	c.Toast("添加用户成功")
 }
 
@@ -92,7 +93,7 @@ func (a *App) updateUser(c *myui.Context) {
 		return
 	}
 	a.editUser = nil
-	a.loadUsers(c)
+	a.refreshData(c, loadUsersScope)
 	c.Toast("更新用户成功")
 }
 
@@ -102,7 +103,7 @@ func (a *App) deleteUser(c *myui.Context) {
 		return
 	}
 	a.delUser = nil
-	a.loadUsers(c)
+	a.refreshData(c, loadUsersScope)
 	c.Toast("删除用户成功")
 }
 

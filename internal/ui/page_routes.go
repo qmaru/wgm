@@ -16,11 +16,12 @@ func (a *App) routesPage(c *myui.Context) {
 			myui.Text(c, fmt.Sprintf("%d 条规则", len(a.routes))).FontSize(13).TextColor(t.TextMuted)
 		})
 
-		myui.Row(c).Gap(8).AlignItems(myui.End).Wrap().MaxWidth(420).Shrink(0).Children(func() {
+		myui.Row(c).Gap(0).AlignItems(myui.End).Wrap().MaxWidth(420).Shrink(0).Children(func() {
 			myui.Field(c, "路由", func() {
-				myui.TextInput(c, &a.cidr).Placeholder("路由").Grow(1).MinWidth(0)
+				myui.TextInput(c, &a.cidr).Placeholder("路由").Height(cardButtonHeight).
+					Radius(8, 0, 0, 8).Grow(1).MinWidth(0)
 			}).Grow(1).MinWidth(160)
-			if myui.PrimaryButton(c, "提交").Height(cardButtonHeight).Padding(7, 16).Clicked() {
+			if myui.PrimaryButton(c, "提交").Height(cardButtonHeight).Padding(5, 16).Radius(0, 8, 8, 0).Clicked() {
 				a.addRoute(c)
 			}
 		})
@@ -62,7 +63,7 @@ func (a *App) addRoute(c *myui.Context) {
 		return
 	}
 	a.cidr = ""
-	a.loadRoutes(c)
+	a.refreshData(c, loadRoutesScope)
 	c.Toast("添加路由成功")
 }
 
@@ -77,7 +78,7 @@ func (a *App) updateRoute(c *myui.Context) {
 		return
 	}
 	a.editRoute = nil
-	a.loadRoutes(c)
+	a.refreshData(c, loadRoutesScope)
 	c.Toast("更新路由成功")
 }
 
@@ -87,7 +88,7 @@ func (a *App) deleteRoute(c *myui.Context) {
 		return
 	}
 	a.delRoute = nil
-	a.loadRoutes(c)
+	a.refreshData(c, loadRoutesScope)
 	c.Toast("删除路由成功")
 }
 

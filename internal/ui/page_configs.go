@@ -60,14 +60,7 @@ func (a *App) stepSummary(c *myui.Context) {
 	if p := a.peerByKey(a.iface); p != nil {
 		iface = p.Username + " · " + p.PrivateAddr
 	}
-	peers := "未选择"
-	if chosen := a.chosenPeers(); len(chosen) > 0 {
-		parts := make([]string, 0, len(chosen))
-		for _, p := range chosen {
-			parts = append(parts, p.Username+" · "+p.PrivateAddr)
-		}
-		peers = strings.Join(parts, "、")
-	}
+	peers := a.selectedPeersSummary()
 
 	title := "配置已生成"
 	switch a.step {
@@ -132,13 +125,18 @@ func (a *App) stepInterface(c *myui.Context) {
 func (a *App) interfaceChoice(c *myui.Context, p *backend.Peer) {
 	t := c.Theme()
 	key := peerKey(p.ID)
-	card := myui.Column(c).Fill().Gap(8).MinWidth(0).Padding(12).Radius(8).Border(1, t.Border).Background(t.Surface)
-	if a.iface == key {
-		card.BorderColor(t.Accent)
+	selectInterface := func() {
+		if a.iface == key {
+			return
+		}
+		a.iface = key
+		a.clearPeerSelection(key)
 	}
+	card := myui.Column(c).Fill().Gap(8).MinWidth(0).Padding(12).Radius(8).Border(1, t.Border).Background(t.Surface).
+		OnClick(selectInterface)
 	card.Children(func() {
 		if myui.Radio(c, &a.iface, key, p.Username).Changed() {
-			a.clearPeerSelection(key)
+			selectInterface()
 		}
 		myui.Row(c).Gap(8).AlignItems(myui.Center).MinWidth(0).Children(func() {
 			myui.Text(c, "LAN").FontSize(11).TextColor(t.TextMuted).Width(32)
@@ -151,19 +149,25 @@ func (a *App) interfaceChoice(c *myui.Context, p *backend.Peer) {
 			})
 		}
 	})
+	background, border := t.Surface, t.Border
+	if a.iface == key {
+		background = t.Accent.Alpha(0.12)
+		border = t.Accent
+	} else if card.Hovered() {
+		background = t.SurfaceHover
+	}
+	card.Background(background).BorderColor(border).Transition(cardStateTransition)
 }
 
 func (a *App) stepPeers(c *myui.Context) {
-	peers := make([]*backend.Peer, 0, len(a.peers))
-	for i := range a.peers {
-		if peerKey(a.peers[i].ID) != a.iface {
-			peers = append(peers, &a.peers[i])
-		}
+	peerCount := len(a.peers)
+	if a.peerByKey(a.iface) != nil {
+		peerCount--
 	}
 	myui.Column(c).Gap(8).Grow(1).MinWidth(0).MinHeight(0).Children(func() {
 		myui.Text(c, "选择对端 Peer（可多选）").FontSize(13).Bold()
-		myui.GridView(c, &a.wizardGrid, len(peers), 280, 172, func(i int) {
-			a.peerChoice(c, peers[i])
+		myui.GridView(c, &a.wizardGrid, peerCount, 280, 172, func(i int) {
+			a.peerChoice(c, a.peerWithoutInterface(i))
 		}).Grow(1).MinWidth(0).MinHeight(0).Gap(8).
 			ScrollbarInsets(0, gridRightInset, gridBottomInset, 0).
 			Padding(0, gridRightInset, gridBottomInset, 0)
@@ -174,34 +178,50 @@ func (a *App) peerChoice(c *myui.Context, p *backend.Peer) {
 	t := c.Theme()
 	key := peerKey(p.ID)
 	checked := a.selected[key]
-	card := myui.Column(c).Gap(6).MinWidth(0).Padding(10).Radius(8).Border(1, t.Border).Background(t.Surface)
-	if checked {
-		card.BorderColor(t.Accent)
-	}
-	card.Children(func() {
-		if myui.Checkbox(c, &checked, p.Username).Changed() {
-			a.togglePeer(key, checked)
+	selectPeer := func() {
+		if checked {
+			return
 		}
-		myui.Text(c, p.PrivateAddr).Font("monospace").FontSize(12).TextColor(t.TextMuted).Wrap().MinWidth(0)
-		myui.Divider(c)
-		myui.Text(c, "路由（可多选）").FontSize(12).TextColor(t.TextMuted)
-		myui.Row(c).Gap(4).Wrap().MinWidth(0).Children(func() {
-			if len(a.routes) == 0 {
-				myui.Text(c, "暂无可选路由").FontSize(12).TextColor(t.TextMuted)
-				return
+		checked = true
+		a.togglePeer(key, true)
+	}
+	card := myui.Column(c).Gap(6).MinWidth(0).Padding(10).Radius(8).Border(1, t.Border).Background(t.Surface)
+	card.Children(func() {
+		myui.Column(c).Gap(6).MinWidth(0).OnClick(selectPeer).Children(func() {
+			if myui.Checkbox(c, &checked, p.Username).Changed() {
+				a.togglePeer(key, checked)
 			}
-			for _, r := range a.routes {
-				on := slices.Contains(a.routeMap[key], r.CIDR)
-				b := myui.Button(c, r.CIDR).FontSize(12).Padding(3, 7).Disabled(!checked)
-				if on {
-					b.Background(t.Accent).TextColor(t.AccentText)
+			myui.Text(c, p.PrivateAddr).Font("monospace").FontSize(12).TextColor(t.TextMuted).Wrap().MinWidth(0)
+		})
+		myui.Column(c).Gap(6).MinWidth(0).Children(func() {
+			myui.Divider(c)
+			myui.Text(c, "路由（可多选）").FontSize(12).TextColor(t.TextMuted)
+			myui.Row(c).Gap(4).Wrap().MinWidth(0).Children(func() {
+				if len(a.routes) == 0 {
+					myui.Text(c, "暂无可选路由").FontSize(12).TextColor(t.TextMuted)
+					return
 				}
-				if b.Clicked() {
-					a.toggleRoute(key, r.CIDR, on)
+				for _, r := range a.routes {
+					on := slices.Contains(a.routeMap[key], r.CIDR)
+					b := myui.Button(c, r.CIDR).FontSize(12).Padding(3, 7).Disabled(!checked)
+					if on {
+						b.Background(t.Accent).TextColor(t.AccentText)
+					}
+					if b.Clicked() {
+						a.toggleRoute(key, r.CIDR, on)
+					}
 				}
-			}
+			})
 		})
 	})
+	background, border := t.Surface, t.Border
+	if checked {
+		background = t.Accent.Alpha(0.12)
+		border = t.Accent
+	} else if card.Hovered() {
+		background = t.SurfaceHover
+	}
+	card.Background(background).BorderColor(border).Transition(cardStateTransition)
 }
 
 func (a *App) stepResult(c *myui.Context) {
@@ -211,7 +231,7 @@ func (a *App) stepResult(c *myui.Context) {
 		}
 		a.resultCard(c, a.config, "all", "完整配置", func() {
 			if a.qr != nil {
-				myui.Image(c, a.qr).Size(150, 150)
+				myui.Image(c, a.qr).Size(configQRDisplaySize, configQRDisplaySize)
 			}
 		})
 	})
@@ -375,7 +395,7 @@ func (a *App) buildConfig() string {
 
 	// The QR code of the whole configuration, made once per configuration.
 	if a.qrFor != a.config {
-		if png, err := qrcode.Encode(a.config, qrcode.Medium, 256); err == nil {
+		if png, err := qrcode.Encode(a.config, qrcode.Low, configQRSize); err == nil {
 			if bitmap, err := myui.DecodeBitmap(png); err == nil {
 				a.qr = bitmap
 				a.qrFor = a.config

@@ -34,6 +34,12 @@ func TestBuildConfig(t *testing.T) {
 	if a.step != 2 || len(a.blocks) != 2 {
 		t.Fatalf("step=%d blocks=%d, want step 2 and two blocks", a.step, len(a.blocks))
 	}
+	if a.qr == nil {
+		t.Fatal("expected a QR code for the generated configuration")
+	}
+	if width, height := myui.ImageSize(a.qr); width != configQRSize || height != configQRSize {
+		t.Fatalf("QR size = %gx%g, want %dx%d", width, height, configQRSize, configQRSize)
+	}
 }
 
 func TestBuildConfigRequiresInterfaceAndPeer(t *testing.T) {
@@ -129,6 +135,40 @@ func TestPageHeadersStayFixedWhileContentScrolls(t *testing.T) {
 				t.Fatalf("last %s item is not visible after inner scrolling: %q", tc.name, tester.Texts())
 			}
 		})
+	}
+}
+
+func TestConfigurationCardsHandleClicksByRegion(t *testing.T) {
+	a := &App{
+		loaded:   true,
+		version:  "test",
+		peers:    []backend.Peer{{ID: 1, Username: "local", PrivateAddr: "10.0.0.1"}, {ID: 2, Username: "remote", PrivateAddr: "10.0.0.2"}},
+		routes:   []backend.Route{{ID: 1, CIDR: "192.168.1.0/24"}},
+		selected: map[string]bool{},
+		routeMap: map[string][]string{},
+	}
+	tester := myui.NewTester(a.View, 860, 520)
+	if err := tester.Click("10.0.0.2"); err != nil {
+		t.Fatal(err)
+	}
+	if a.iface != "2" {
+		t.Fatalf("interface = %q, want 2", a.iface)
+	}
+
+	a.iface = "1"
+	a.step = 1
+	tester.Frame()
+	if err := tester.Click("10.0.0.2"); err != nil {
+		t.Fatal(err)
+	}
+	if !a.selected["2"] {
+		t.Fatal("clicking the peer content should select the peer")
+	}
+	if err := tester.Click("192.168.1.0/24"); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.routeMap["2"]; len(got) != 1 || got[0] != "192.168.1.0/24" {
+		t.Fatalf("routes = %v, want the route button to toggle independently", got)
 	}
 }
 

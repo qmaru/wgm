@@ -194,7 +194,7 @@ func (a *App) savePeer(c *myui.Context) {
 		return
 	}
 	a.editPeer = nil
-	a.loadPeers(c)
+	a.refreshData(c, loadPeersScope)
 	if add {
 		c.Toast("添加节点成功")
 	} else {
@@ -208,7 +208,7 @@ func (a *App) deletePeer(c *myui.Context) {
 		return
 	}
 	a.delPeer = nil
-	a.loadPeers(c)
+	a.refreshData(c, loadPeersScope)
 	c.Toast("删除节点成功")
 }
 
