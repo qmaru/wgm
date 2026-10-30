@@ -5,9 +5,9 @@ import (
 )
 
 const (
-	marjorVer string = "2"
+	marjorVer string = "3"
 	minorVer  string = "0"
-	dateVer   string = "20260407"
+	dateVer   string = "20261029"
 )
 
-var BackendVersion string = fmt.Sprintf("%s.%s-%s (backend)", marjorVer, minorVer, dateVer)
+var AppVersion string = fmt.Sprintf("%s.%s-%s", marjorVer, minorVer, dateVer)

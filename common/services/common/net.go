@@ -1,45 +1,29 @@
 package common
 
 import (
-	"fmt"
+	"errors"
 	"net"
 )
 
-func isDomain(domain string) bool {
-	_, err := net.LookupHost(domain)
-	return err == nil
-}
-
 func PublicValidator(publicAddr string) (string, error) {
-	if isDomain(publicAddr) {
-		_, err := net.LookupHost(publicAddr)
-		if err != nil {
-			return "", fmt.Errorf("domain error")
-		}
+	if net.ParseIP(publicAddr) != nil {
 		return publicAddr, nil
 	}
-	ipNet := net.ParseIP(publicAddr)
-	if ipNet == nil {
-		return "", fmt.Errorf("ip error")
+	if _, err := net.LookupHost(publicAddr); err != nil {
+		return "", errors.New("ip error")
 	}
 	return publicAddr, nil
 }
 
 func PrivateValidator(privateAddr string) (string, error) {
-	if isDomain(privateAddr) {
-		addrs, err := net.LookupHost(privateAddr)
-		if err != nil {
-			return "", fmt.Errorf("domain error")
-		}
-		for _, addr := range addrs {
-			return addr, nil
-		}
+	if net.ParseIP(privateAddr) != nil {
+		return privateAddr, nil
 	}
-	ipNet := net.ParseIP(privateAddr)
-	if ipNet == nil {
-		return "", fmt.Errorf("ip error")
+	addrs, err := net.LookupHost(privateAddr)
+	if err != nil || len(addrs) == 0 {
+		return "", errors.New("ip error")
 	}
-	return privateAddr, nil
+	return addrs[0], nil
 }
 
 // CIDRValidator 检查IP块
@@ -53,7 +37,10 @@ func CIDRValidator(cidr string) (string, error) {
 
 // IPCheck 检查 IP 是否在划分的范围内
 func IPcheck(ip string, cidr string) bool {
-	_, subnet, _ := net.ParseCIDR(cidr)
+	_, subnet, err := net.ParseCIDR(cidr)
+	if err != nil {
+		return false
+	}
 	nip := net.ParseIP(ip)
-	return subnet.Contains(nip)
+	return nip != nil && subnet.Contains(nip)
 }

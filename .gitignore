@@ -1,20 +1,5 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# ui
-ui/frontend/node_modules
-ui/frontend/.pnp
-ui/frontend/.pnp.js
-ui/frontend/coverage
-ui/frontend/dist
-ui/frontend/.DS_Store
-ui/frontend/.env.local
-ui/frontend/.env.development.local
-ui/frontend/.env.test.local
-ui/frontend/.env.production.local
-ui/frontend/npm-debug.log*
-ui/frontend/yarn-debug.log*
-ui/frontend/yarn-error.log*
-ui/frontend/.yarn/cache
 build/bin
 # Binaries for programs and plugins
 *.exe
@@ -34,3 +19,6 @@ build/bin
 go.work
 go.work.sum
 wgm.db
+
+# mygo build
+release
